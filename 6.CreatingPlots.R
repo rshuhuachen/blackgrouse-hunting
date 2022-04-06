@@ -10,7 +10,7 @@ library(devtools); library(readxl); library(devtools); library(pophelper); libra
 
 #palette
 mypalette3 <- c("#EDEDFD","#C2C1EC","#9795DB","#6C69C9","#413DB8","#1611A7") #purples from structure
-
+theme_set(theme_classic())
 #### Figure 2: heatmaps pairwise Fst + correlograms spatial autocorrelation ####
 
 ### First: heatmap
@@ -22,7 +22,7 @@ pairwise.fst.chicks <- read.csv("data/Pairwise_Fst_chicks.csv")
 pairwise.fst.females$Fst[which (pairwise.fst.females$Fst < 0)] <- 0
 
 # add abbreviation to chick data
-sitenames <- read.csv("data/Codes.pops.both.filtered.csv")
+sitenames <- read.csv("data/Codes.pops.both.filtered_withcoord.csv")
 # add abbreviations to sitenames
 sitenames[1]
 sitenames$abb <- c("KOS", "KUM", "LAU", "LEH", "NYR", "PAL", "PIH", "PIL", "PIS", "SAA", "TEE", "UTU")
@@ -51,7 +51,7 @@ ggplot(pairwise.fst.males, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         legend.position = c(0.8, 0.3)) +
-  ggtitle('a) Males') 
+  ggtitle('(a) Males') 
 
 
 ### Females - pairwise Fst heatmap
@@ -74,10 +74,10 @@ ggplot(pairwise.fst.females, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + them
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         legend.position = c(0.8, 0.3)) +
-  ggtitle('b) Females') 
+  ggtitle('(b) Females') 
 
 ### Chicks - Pairwise FST
-ggplot(pairwise.fst.chicks, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
+chicks.fst <- ggplot(pairwise.fst.chicks, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
   scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
   geom_text(aes(label = Sig), size = 8)+ 
   theme(text = element_text(family = "Helvetica", size = 22),
@@ -94,7 +94,7 @@ ggplot(pairwise.fst.chicks, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         legend.position = c(0.8, 0.3)) +
-  ggtitle("c) Chicks ")
+  ggtitle("(c) Chicks ")
 
 ### Second - correlograms ###
 spatial <- read_excel("data/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
@@ -170,7 +170,7 @@ migration_both <- subset(migration_both, m_in != m_out)
 # plot emigration rates 
 emigration.plot <- ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) + 
   geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
-  labs(title = "a) Emigration rates") + 
+  labs(title = "(a) Emigration rates") + 
   ylab("Migration rate")+
   theme(text = element_text(family = "Arial", size = 26),
         legend.text = element_text(size = 28),
@@ -188,7 +188,7 @@ emigration.plot <- ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, 
 
 immmigration.plot <- ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) + 
   geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
-  labs(title = "b) Immigration rates") + 
+  labs(title = "(b) Immigration rates") + 
   ylab("Migration rate")+
   theme(text = element_text(family = "Arial", size = 26),
         legend.text = element_text(size = 28),
@@ -203,10 +203,10 @@ immmigration.plot <- ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc,
   guides(fill = guide_legend("Sex"))
 
 
-ggsave(plot = emigration.plot, "data/Males_migration.png",
+ggsave(plot = emigration.plot, "data/Emigration.png",
        width = 30, height = 20, units = c("cm"))
 
-ggsave(plot = immmigration.plot, "data/Males_migration.png",
+ggsave(plot = immmigration.plot, "data/Immigration.png",
        width = 30, height = 20, units = c("cm"))
 
 #### Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
@@ -232,7 +232,7 @@ ks_fem <- ggplot(ks_ad_fem, aes(x = k, y = elpdmean)) +
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
         plot.title = element_text(size = 22)) + 
-  labs(title = "b) Log likelihood per K for females") 
+  labs(title = "(b)") 
 
 ks_male <- ggplot(ks_ad_male, aes(x = k, y = elpdmean)) +
   geom_point() + geom_line()+ ylab("LnPr(X|k)") +
@@ -249,7 +249,7 @@ ks_male <- ggplot(ks_ad_male, aes(x = k, y = elpdmean)) +
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
         plot.title = element_text(size = 22))+ 
-  labs(title = "a) Log likelihood per K for males")
+  labs(title = "(a)")
 
 ks_chick <- ggplot(ks_chick, aes(x = k, y = elpdmean)) +
   geom_point() + geom_line()+ ylab("LnPr(X|k)") +
@@ -263,7 +263,13 @@ ks_chick <- ggplot(ks_chick, aes(x = k, y = elpdmean)) +
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
         plot.title = element_text(size = 22))+ 
-  labs(title = "c) Log likelihood per K for chicks")
+  labs(title = "(c)")
+
+library(cowplot); library(gridExtra)
+png("data/K_all.png", 
+    width = 1000, height = 700, units = "px")
+grid.arrange(ks_male, ks_fem, ks_chick)
+dev.off()
 
 ##### Supplementary Figures 2 and 3: barplots STRUCTURE #####
 
