@@ -4,12 +4,25 @@
 ## on both emigration and immigration rates
 
 #load packages
-library(data.table); library(stringr); library(tidyr); library(dplyr); library(ggplot2)
+library(data.table); library(tidyverse); library(tibble); library(MuMIn)
 library(lme4); library(lmerTest); library(readxl); library(DHARMa);library(glmmTMB); library(performance)
+
+# load in pop data
+setwd("P:\\Black Grouse PhD\\Projects\\Hunting_Microsats\\Clean+final_analysis\\ScriptsHuntingFinal\\blackgrouse-hunting\\")
+pops <- read.csv("data/Codes.pops.both.filtered_withcoord.csv")
+pops$pop_num <- as.factor(pops$pop_num)
+
+## load in Matrix distances between sites ##
+distance <- read_excel("data/CalculateDistanceSitesGenAlEx.xlsx", sheet = "MatrixForR")
+names(distance)[1] <- "Site_A"
+
+distance_long <- melt(distance)
+names(distance_long) <- c("Site_A", "Site_B", "Distance")
+distance_long <- subset(distance_long, distance_long$Site_A != distance_long$Site_B)
 
 ####### Reformatting for BA3 #######
 
-male.stru <- fread("/Volumes/rchen2/Black Grouse PhD/Projects/Hunting_Microsats/Clean+final_analysis/Clean_data/Microsat.males.noLOCUS1+13.forstructure.stru")
+male.stru <- fread("data/Microsat.males.noLOCUS1+13.forstructure.stru")
 head(male.stru)
 names(male.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
                       "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
@@ -36,7 +49,7 @@ write.table(ba3, "data/data_males_ba3.txt",
 
 
 #females
-female.stru <- fread("/Volumes/rchen2/Black Grouse PhD/Projects/Hunting_Microsats/Clean+final_analysis/Clean_data/Microsat.females.noLOCUS1+13.forstructure.stru")
+female.stru <- fread("data/Microsat.females.noLOCUS1+13.forstructure.stru")
 head(female.stru)
 names(female.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
                       "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
@@ -149,75 +162,140 @@ maleruns <- myfiles[c(6:10)]
 femaleruns <- myfiles[c(1:5)]
 
 #separate per run to compare
-male_run6 <- maleruns[[1]]
-male_run7 <- maleruns[[2]]
-male_run8 <- maleruns[[3]]
-male_run9 <- maleruns[[4]]
-male_run10 <- maleruns[[5]]
+male_run1 <- maleruns[[1]]
+male_run2 <- maleruns[[2]]
+male_run3 <- maleruns[[3]]
+male_run4 <- maleruns[[4]]
+male_run5 <- maleruns[[5]]
 
-female_run6 <- femaleruns[[1]]
-female_run7 <- femaleruns[[2]]
-female_run8 <- femaleruns[[3]]
-female_run9 <- femaleruns[[4]]
-female_run10 <- femaleruns[[5]]
+female_run1 <- femaleruns[[1]]
+female_run2 <- femaleruns[[2]]
+female_run3 <- femaleruns[[3]]
+female_run4 <- femaleruns[[4]]
+female_run5 <- femaleruns[[5]]
 
 #### Compare runs ####
-plot(male_run6$migration, male_run7$migration)
-plot(male_run6$migration, male_run8$migration)
-plot(male_run6$migration, male_run9$migration)
-plot(male_run6$migration, male_run10$migration)
-plot(male_run7$migration, male_run8$migration)
-plot(male_run7$migration, male_run9$migration)
-plot(male_run7$migration, male_run10$migration)
-plot(male_run8$migration, male_run9$migration)
-plot(male_run8$migration, male_run10$migration)
-plot(male_run9$migration, male_run10$migration)
-# seems like run 6, 8 and 10 correspond
-# see if it's due to convergence: 
-# with tracer count ESS < 100 for run 6 = 37
-# with tracer count ESS < 100 for run 7 = 43
+plot(male_run1$migration, male_run2$migration)
+plot(male_run1$migration, male_run3$migration)
+plot(male_run1$migration, male_run4$migration)
+plot(male_run1$migration, male_run5$migration)
+plot(male_run2$migration, male_run3$migration)
+plot(male_run2$migration, male_run4$migration)
+plot(male_run2$migration, male_run5$migration)
+plot(male_run3$migration, male_run4$migration)
+plot(male_run3$migration, male_run5$migration)
+plot(male_run4$migration, male_run5$migration)
+# all runs correspond
 
-plot(female_run6$migration, female_run7$migration)
-plot(female_run6$migration, female_run8$migration)
-plot(female_run6$migration, female_run9$migration)
-plot(female_run6$migration, female_run10$migration)
-plot(female_run7$migration, female_run8$migration)
-plot(female_run7$migration, female_run9$migration)
-plot(female_run7$migration, female_run10$migration)
-plot(female_run8$migration, female_run9$migration)
-plot(female_run8$migration, female_run10$migration)
-plot(female_run9$migration, female_run10$migration)
+plot(female_run1$migration, female_run2$migration)
+plot(female_run1$migration, female_run3$migration)
+plot(female_run1$migration, female_run4$migration)
+plot(female_run1$migration, female_run5$migration)
+plot(female_run2$migration, female_run3$migration)
+plot(female_run2$migration, female_run4$migration)
+plot(female_run2$migration, female_run5$migration)
+plot(female_run3$migration, female_run4$migration)
+plot(female_run3$migration, female_run5$migration)
+plot(female_run4$migration, female_run5$migration)
 
-#seems like run 6, 7, 8, 10 (just not 9)
+# all runs correspond
 
-## Going to pick run 10 for both
+## Going to pick run 5 for both
 
-#### Load in run 10 ####
+#### Clean migration files ####
+# to do: add ESS, corrected migration value, hunted status, distance between sites
+
+#first add ESS
+ESS_male_run5 <- read.delim("tracer_summary/tracer_summary_males5.txt", sep = "\t")
+ESS_female_run5 <- read.csv("tracer_summary/tracer_summary_females5.txt", sep = "\t")
+
+ESS_male_run5.df <- t(ESS_male_run5)
+colnames(ESS_male_run5.df) <- ESS_male_run5.df[1,]
+ESS_male_run5.df <- as.data.frame(ESS_male_run5.df[-c(1,2),])#take out col names and row for log prob
+ESS_male_run5.df <- rownames_to_column(ESS_male_run5.df, "m")
+
+ESS_female_run5.df <- t(ESS_female_run5)
+colnames(ESS_female_run5.df) <- ESS_female_run5.df[1,]
+ESS_female_run5.df <- as.data.frame(ESS_female_run5.df[-c(1,2),])#take out col names and row for log prob
+ESS_female_run5.df <- rownames_to_column(ESS_female_run5.df, "m")
+
+#males
+male_run5 <- male_run5 %>% arrange(m_in) #now, the two files are sorted the same way, so can just cbind
+male_run5_clean <- cbind(male_run5, ESS_male_run5.df[,c(11)]) #select ESS
+
+head(male_run5_clean)
+names(male_run5_clean)[5] <- "ESS"
+#females
+female_run5 <- female_run5 %>% arrange(m_in) #now, the two files are sorted the same way, so can just cbind
+female_run5_clean <- cbind(female_run5, ESS_female_run5.df[,c(11)]) #select ESS
+
+head(female_run5_clean)
+names(female_run5_clean)[5] <- "ESS"
+
+#add migration_ESSc column, which turns to NA if ESS < 200
+#male
+male_run5_clean$ESS <- as.numeric(male_run5_clean$ESS)
+male_run5_clean$migration <- as.numeric(male_run5_clean$migration)
+male_run5_clean$migration_SE <- as.numeric(male_run5_clean$migration_SE)
+male_run5_clean$migration_ESSc <- case_when(male_run5_clean$ESS < 200 ~ as.numeric(NA),
+                                            male_run5_clean$ESS >= 200 ~ as.numeric(male_run5_clean$migration))
+
+#female
+female_run5_clean$ESS <- as.numeric(female_run5_clean$ESS)
+female_run5_clean$migration <- as.numeric(female_run5_clean$migration)
+female_run5_clean$migration_SE <- as.numeric(female_run5_clean$migration_SE)
+female_run5_clean$migration_ESSc <- case_when(female_run5_clean$ESS < 200 ~ as.numeric(NA),
+                                            female_run5_clean$ESS >= 200 ~ as.numeric(female_run5_clean$migration))
+
+
+# then, add hunted status and full site names
+male_run5_clean$m_in<-as.factor(male_run5_clean$m_in)
+male_run5_clean$m_out<-as.factor(male_run5_clean$m_out)
+
+male_run5_clean <- left_join(male_run5_clean, pops[,c(1:3)], by = c("m_in" = "pop_num"))
+names(male_run5_clean)[7] <- "pop_in"
+names(male_run5_clean)[8] <- "hunt_in"
+
+male_run5_clean <- left_join(male_run5_clean, pops[,c(1:3)], by = c("m_out" = "pop_num"))
+names(male_run5_clean)[9] <- "pop_out"
+names(male_run5_clean)[10] <- "hunt_out"
+
+female_run5_clean$m_in<-as.factor(female_run5_clean$m_in)
+female_run5_clean$m_out<-as.factor(female_run5_clean$m_out)
+
+female_run5_clean <- left_join(female_run5_clean, pops[,c(1:3)], by = c("m_in" = "pop_num"))
+names(female_run5_clean)[7] <- "pop_in"
+names(female_run5_clean)[8] <- "hunt_in"
+
+female_run5_clean <- left_join(female_run5_clean, pops[,c(1:3)], by = c("m_out" = "pop_num"))
+names(female_run5_clean)[9] <- "pop_out"
+names(female_run5_clean)[10] <- "hunt_out"
+
+## add distance
+male_run5_clean <- left_join(male_run5_clean, distance_long, by = c("pop_in" = "Site_A", "pop_out" = "Site_B"))
+female_run5_clean <- left_join(female_run5_clean, distance_long, by = c("pop_in" = "Site_A", "pop_out" = "Site_B"))
+
+write.table(male_run5_clean, file = "data/run5_males_clean.csv", sep = ",", row.names = F,quote = F)
+write.table(female_run5_clean, file = "data/run5_females_clean.csv", sep = ",", row.names = F,quote = F)
+
+#### Load in clean runs ####
 
 #this file has been cleaned up, hunted status added, distances between sites and corrected migration value excluding those with ESS < 200
 
-male_run10_select <- read.csv("data/run10_males_select_edited.csv")
-female_run10_select <- read.csv("data/run10_females_select_edited.csv")
+male_run5_clean <- read.csv("data/run5_males_clean.csv")
+female_run5_clean <- read.csv("data/run5_females_clean.csv")
 
-#correct site names that don't load in correctly
-male_run10_select$pop_in[which(male_run10_select$pop_in == "Koskenp\xe4\xe4")] <- "Koskenpää"
-male_run10_select$pop_in[which(male_run10_select$pop_in == "Nyr\xf6l\xe4")] <- "Nyrölä"
-male_run10_select$pop_out[which(male_run10_select$pop_out == "Koskenp\xe4\xe4")] <- "Koskenpää"
-male_run10_select$pop_out[which(male_run10_select$pop_out == "Nyr\xf6l\xe4")] <- "Nyrölä"
-
-female_run10_select$pop_in[which(female_run10_select$pop_in == "Koskenp\xe4\xe4")] <- "Koskenpää"
-female_run10_select$pop_in[which(female_run10_select$pop_in == "Nyr\xf6l\xe4")] <- "Nyrölä"
-female_run10_select$pop_out[which(female_run10_select$pop_out == "Koskenp\xe4\xe4")] <- "Koskenpää"
-female_run10_select$pop_out[which(female_run10_select$pop_out == "Nyr\xf6l\xe4")] <- "Nyrölä"
-
-### Plotting migration rates from run 10 ####
+### Plotting migration rates from run 5 ####
+#first, exclude the 'non-migration rates' which are those where pop in = pop out
+male_run5_clean <- subset(male_run5_clean, m_in != m_out)
+female_run5_clean <- subset(female_run5_clean, m_in != m_out)
 
 theme_set(theme_classic())
 # males: out hunted vs out unhunted but exclude nonmigration rates
 
-ttest_males_in_rates <- t.test(male_run10_select$migration_ESSc[which(male_run10_select$hunt_in == "hunted" & male_run10_select$m_in != male_run10_select$m_out)], male_run10_select$migration_ESSc[which(male_run10_select$hunt_in == "unhunted" & male_run10_select$m_in != male_run10_select$m_out)])
+ttest_males_in_rates <- t.test(male_run5_clean$migration_ESSc[which(male_run5_clean$hunt_in == "hunted" & male_run5_clean$m_in != male_run5_clean$m_out)], male_run5_clean$migration_ESSc[which(male_run5_clean$hunt_in == "unhunted" & male_run5_clean$m_in != male_run5_clean$m_out)])
 
-ggplot(male_run10_select, aes(x = hunt_in, y = migration_ESSc)) + geom_boxplot(aes(fill = "Type")) +
+ggplot(male_run5_clean, aes(x = hunt_in, y = migration_ESSc)) + geom_boxplot(aes(fill = "Type")) +
   labs(title = "Migration rates IN for males") + xlab("Hunted status") + ylab("migration rates in")+
   labs(subtitle = 
          paste("Excluding values with ESS < 200 
@@ -230,9 +308,9 @@ t = ", round(ttest_males_in_rates$statistic,2), "and p-value = ", round(ttest_ma
 
 # males: in hunted vs in unhunted but exclude nonmigration_ESSc rates
 
-ttest_males_out_rates <- t.test(male_run10_select$migration_ESSc[which(male_run10_select$hunt_out == "hunted")], male_run10_select$migration_ESSc[which(male_run10_select$hunt_out == "unhunted")])
+ttest_males_out_rates <- t.test(male_run5_clean$migration_ESSc[which(male_run5_clean$hunt_out == "hunted")], male_run5_clean$migration_ESSc[which(male_run5_clean$hunt_out == "unhunted")])
 
-ggplot(male_run10_select, aes(x = hunt_out, y = migration_ESSc, fill = "blue")) + geom_boxplot(aes(fill = "Type")) +
+ggplot(male_run5_clean, aes(x = hunt_out, y = migration_ESSc, fill = "blue")) + geom_boxplot(aes(fill = "Type")) +
   labs(title = "Migration rates OUT for males") + xlab("Hunted status") + ylab("migration rates out")+
   labs(subtitle = 
          paste("Excluding values with ESS < 200 
@@ -244,9 +322,9 @@ t = ", round(ttest_males_out_rates$statistic,2), "and p-value = ", round(ttest_m
   scale_fill_manual(values = c("cyan3"))
 
 # females: out hunted vs out unhunted but exclude nonmigration_ESSc rates
-ttest_females_in_rates <- t.test(female_run10_select$migration_ESSc[which(female_run10_select$hunt_in == "hunted" & female_run10_select$m_in != female_run10_select$m_out)], female_run10_select$migration_ESSc[which(female_run10_select$hunt_in == "unhunted" & female_run10_select$m_in != female_run10_select$m_out)])
+ttest_females_in_rates <- t.test(female_run5_clean$migration_ESSc[which(female_run5_clean$hunt_in == "hunted" & female_run5_clean$m_in != female_run5_clean$m_out)], female_run5_clean$migration_ESSc[which(female_run5_clean$hunt_in == "unhunted" & female_run5_clean$m_in != female_run5_clean$m_out)])
 
-ggplot(female_run10_select, aes(x = hunt_in, y = migration_ESSc, fill = "red")) + geom_boxplot() +
+ggplot(female_run5_clean, aes(x = hunt_in, y = migration_ESSc, fill = "red")) + geom_boxplot() +
   labs(title = "Migration rates IN for females") + xlab("Hunted status") + ylab("migration rates in")+
   labs(subtitle = 
          paste("Excluding values with ESS < 200 
@@ -258,9 +336,9 @@ t = ", round(ttest_females_in_rates$statistic,2), "and p-value = ", round(ttest_
 
 # females: in hunted vs in unhunted but exclude nonmigration_ESSc rates
 
-ttest_females_out_rates <- t.test(female_run10_select$migration_ESSc[which(female_run10_select$hunt_out == "hunted" & female_run10_select$m_in != female_run10_select$m_out)], female_run10_select$migration_ESSc[which(female_run10_select$hunt_out == "unhunted" & female_run10_select$m_in != female_run10_select$m_out)])
+ttest_females_out_rates <- t.test(female_run5_clean$migration_ESSc[which(female_run5_clean$hunt_out == "hunted" & female_run5_clean$m_in != female_run5_clean$m_out)], female_run5_clean$migration_ESSc[which(female_run5_clean$hunt_out == "unhunted" & female_run5_clean$m_in != female_run5_clean$m_out)])
 
-ggplot(female_run10_select, aes(x = hunt_out, y = migration_ESSc, fill = "red")) + geom_boxplot() +
+ggplot(female_run5_clean, aes(x = hunt_out, y = migration_ESSc, fill = "red")) + geom_boxplot() +
   labs(title = "Migration rates OUT for females") + xlab("Hunted status") + ylab("migration rates out")+
   labs(subtitle = 
          paste("Excluding values with ESS < 200
@@ -272,11 +350,19 @@ t = ", round(ttest_females_out_rates$statistic,2), "and p-value = ", round(ttest
 
 #### Modelling migration ####
 
-names(female_run10_select) == names(male_run10_select)
-female_run10_select$sex <- "Female"
-male_run10_select$sex <- "Male"
+names(female_run5_clean) == names(male_run5_clean)
+female_run5_clean$sex <- "Female"
+male_run5_clean$sex <- "Male"
 
-migration_both <- rbind(male_run10_select, female_run10_select)
+#change levels hunted/unhunted
+male_run5_clean$hunt_in <- relevel(as.factor(male_run5_clean$hunt_in), ref = "unhunted")
+male_run5_clean$hunt_out <- relevel(as.factor(male_run5_clean$hunt_out), ref = "unhunted")
+
+female_run5_clean$hunt_in <- relevel(as.factor(female_run5_clean$hunt_in), ref = "unhunted")
+female_run5_clean$hunt_out <- relevel(as.factor(female_run5_clean$hunt_out), ref = "unhunted")
+
+#combine in one df
+migration_both <- rbind(male_run5_clean, female_run5_clean)
 
 #immigration
 
@@ -294,3 +380,10 @@ model.both.out <- glmmTMB(migration_ESSc~ hunt_out + Distance + sex + (1|pop_out
 summary(model.both.out) 
 plot(model.both.out)
 simulateResiduals(fittedModel = model.both.out, plot = T)
+
+## model performance
+icc(model = model.both.in, by_group = TRUE)
+icc(model = model.both.out, by_group = TRUE)
+
+r.squaredGLMM(model.both.in)
+r.squaredGLMM(model.both.out)

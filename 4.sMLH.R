@@ -6,7 +6,7 @@ library(dplyr);library(tibble);library(ggplot2)
 library(inbreedR); library(data.table)
 library(lmerTest); library(DHARMa); library(performance);library(MuMIn)
 
-setwd("/Volumes/rchen2/Black Grouse PhD/Projects/Hunting_Microsats/Clean+final_analysis/ScriptsHuntingFinal/GithubDirectory") #set to directory of github repository
+#setwd("/Volumes/rchen2/Black Grouse PhD/Projects/Hunting_Microsats/Clean+final_analysis/ScriptsHuntingFinal/GithubDirectory") #set to directory of github repository
 
 sitenames <- read.csv("data/Codes.pops.both.filtered_withcoord.csv") #information for each site
 sitenames[1,1] <- "Koskenpää"
@@ -126,7 +126,7 @@ sMLH.all %>% filter(!is.na(sex)) %>%ggplot(aes(x = age, y = sMLH, col = sex)) +
   geom_boxplot() + theme_classic ()
 
 #### Or: load in sMLH ####
-save(sMLH.all, file = "data/sMLH.all.RData")
+#save(sMLH.all, file = "data/sMLH.all.RData")
 load(file = "data/sMLH.all.RData")
 
 #### Modelling sMLH ####
