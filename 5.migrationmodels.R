@@ -8,7 +8,7 @@ library(data.table); library(tidyverse); library(tibble); library(MuMIn)
 library(lme4); library(lmerTest); library(readxl); library(DHARMa);library(glmmTMB); library(performance)
 
 # load in pop data
-setwd("P:\\Black Grouse PhD\\Projects\\Hunting_Microsats\\Clean+final_analysis\\ScriptsHuntingFinal\\blackgrouse-hunting\\")
+#setwd("P:\\Black Grouse PhD\\Projects\\Hunting_Microsats\\Clean+final_analysis\\ScriptsHuntingFinal\\blackgrouse-hunting\\")
 pops <- read.csv("data/Codes.pops.both.filtered_withcoord.csv")
 pops$pop_num <- as.factor(pops$pop_num)
 
@@ -27,8 +27,8 @@ head(male.stru)
 names(male.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
                       "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
 
-male.stru.a <- structure[seq(from = 1, by = 2, to = nrow(male.stru)-1),]
-male.stru.b <- structure[seq(from = 2, by = 2, to = nrow(male.stru)),]
+male.stru.a <- male.stru[seq(from = 1, by = 2, to = nrow(male.stru)-1),]
+male.stru.b <- male.stru[seq(from = 2, by = 2, to = nrow(male.stru)),]
 
 ba3.male.a <- melt(data = male.stru.a,
               id.vars = c("indivID", "popID"),
@@ -54,8 +54,8 @@ head(female.stru)
 names(female.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
                       "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
 
-female.stru.a <- structure[seq(from = 1, by = 2, to = nrow(female.stru)-1),]
-female.stru.b <- structure[seq(from = 2, by = 2, to = nrow(female.stru)),]
+female.stru.a <- female.stru[seq(from = 1, by = 2, to = nrow(female.stru)-1),]
+female.stru.b <- female.stru[seq(from = 2, by = 2, to = nrow(female.stru)),]
 
 ba3.female.a <- melt(data = female.stru.a,
                    id.vars = c("indivID", "popID"),
@@ -373,6 +373,13 @@ summary(model.both.in)
 plot(model.both.in)
 simulateResiduals(fittedModel = model.both.in, plot = T)
 
+model.both.in.interaction <- glmmTMB(migration_ESSc~ hunt_in + Distance*sex + (1|pop_out) + (1|pop_in), 
+                         data = migration_both, 
+                         family = Gamma(link = "log"))
+summary(model.both.in.interaction) 
+plot(model.both.in.interaction)
+simulateResiduals(fittedModel = model.both.in.interaction, plot = T)
+
 #out
 model.both.out <- glmmTMB(migration_ESSc~ hunt_out + Distance + sex + (1|pop_out) + (1|pop_in), 
                           data = migration_both, 
@@ -381,9 +388,24 @@ summary(model.both.out)
 plot(model.both.out)
 simulateResiduals(fittedModel = model.both.out, plot = T)
 
+model.both.out.interaction <- glmmTMB(migration_ESSc~ hunt_out + Distance*sex + (1|pop_out) + (1|pop_in), 
+                          data = migration_both, 
+                          family = Gamma(link = "log"))
+summary(model.both.out.interaction) 
+plot(model.both.out.interaction)
+simulateResiduals(fittedModel = model.both.out.interaction, plot = T)
+
 ## model performance
 icc(model = model.both.in, by_group = TRUE)
+icc(model = model.both.in.interaction, by_group = TRUE)
 icc(model = model.both.out, by_group = TRUE)
+icc(model = model.both.out.interaction, by_group = TRUE)
+
 
 r.squaredGLMM(model.both.in)
+r.squaredGLMM(model.both.in.interaction)
 r.squaredGLMM(model.both.out)
+r.squaredGLMM(model.both.out.interaction)
+
+compare_performance(model.both.in, model.both.in.interaction, rank=T)
+compare_performance(model.both.out, model.both.out.interaction, rank=T)
