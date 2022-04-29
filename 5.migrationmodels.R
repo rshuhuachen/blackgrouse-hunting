@@ -285,6 +285,29 @@ write.table(female_run5_clean, file = "data/run5_females_clean.csv", sep = ",", 
 male_run5_clean <- read.csv("data/run5_males_clean.csv")
 female_run5_clean <- read.csv("data/run5_females_clean.csv")
 
+## write out as matrix for supplements ##
+males_run5_m <- male_run5_clean[,c(7,9,6)]
+males_run5_m <- pivot_wider(males_run5_m, names_from = "pop_out", values_from = "migration_ESSc")
+males_run5_se<- male_run5_clean[,c(7,9,4)]
+males_run5_se <- pivot_wider(males_run5_se, names_from = "pop_out", values_from = "migration_SE")
+males_run5_m_raw<- male_run5_clean[,c(7,9,3)]
+males_run5_m_raw <- pivot_wider(males_run5_m_raw, names_from = "pop_out", values_from = "migration")
+
+females_run5_m <- female_run5_clean[,c(7,9,6)]
+females_run5_m <- pivot_wider(females_run5_m, names_from = "pop_out", values_from = "migration_ESSc")
+females_run5_se<- female_run5_clean[,c(7,9,4)]
+females_run5_se <- pivot_wider(females_run5_se, names_from = "pop_out", values_from = "migration_SE")
+females_run5_m_raw<- female_run5_clean[,c(7,9,3)]
+females_run5_m_raw <- pivot_wider(females_run5_m_raw, names_from = "pop_out", values_from = "migration")
+
+write.csv(males_run5_m, "males.migration.csv", row.names = F)
+write.csv(males_run5_se, "males.migration.se.csv", row.names = F)
+write.csv(males_run5_m_raw, "males.migration.raw.csv", row.names = F)
+
+write.csv(females_run5_m, "females.migration.csv", row.names = F)
+write.csv(females_run5_se, "females.migration.se.csv", row.names = F)
+write.csv(females_run5_m_raw, "females.migration.raw.csv", row.names = F)
+
 ### Plotting migration rates from run 5 ####
 #first, exclude the 'non-migration rates' which are those where pop in = pop out
 male_run5_clean <- subset(male_run5_clean, m_in != m_out)
