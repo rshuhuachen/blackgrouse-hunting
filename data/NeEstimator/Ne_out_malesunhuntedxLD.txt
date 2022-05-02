@@ -1,0 +1,27 @@
+Output from NeEstimator v2.1
+Starting time: Mon May  2 11:04:10 2022
+
+Mating Model: Monogamy
+
+Lowest allele frequencies used, ordered in each population:
+    0.1000    0.0500    0.0200    0.0000
+Input Names are shown up to 17 righmost characters.
+Up to 17 righmost characters can be shown for population names.
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+Input File Number   #Loci  Population #   Samp  Crit.  Weighted      #Indep.    r^2     Exp(r^2)       Ne^                 CIs for Ne^
+then :Name                 then :Name     Size  Value  H. Mean       Alleles            Sample                    Parametric       Jackknife Samp  (Eff.df)
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+1:malesunhunted.txt    24
+-------------------------
+                           1:D038         176  0.1000    140.0        1689  0.004148  0.006325     -309.0  Infinite  Infinite  Infinite  Infinite       106
+                                               0.0500    140.7        1998  0.004658  0.006293     -410.5  Infinite  Infinite  Infinite  Infinite       105
+                                               0.0200    141.0        2352  0.005285  0.006321     -646.1  Infinite  Infinite     290.9  Infinite        41
+                                               0.0000    140.7        2367  0.005649  0.006330     -981.1  Infinite  Infinite      96.0  Infinite        16
+
+-------------------------------------
+Total number of populations =       1
+-------------------------------------
+
+Ending time: Mon May  2 11:04:10 2022
+-------------------------------------
+

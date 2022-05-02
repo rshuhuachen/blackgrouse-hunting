@@ -1,0 +1,34 @@
+Output from NeEstimator v2.1
+Starting time: Mon May  2 11:04:10 2022
+Input File #1: "genepop_output_malesunhunted.txt"
+
+Number of Loci = 24
+
+LD mating model: Monogamy
+
+Population     1 [D038]  (Number of Individuals = 176)
+****************
+--------------------------------------------------------------------------
+Lowest Allele Frequency Used     0.100       0.050       0.020         0+
+--------------------------------------------------------------------------
+
+LINKAGE DISEQUILIBRIUM METHOD
+
+Harmonic Mean Sample Size =      140.0       140.7       141.0       140.7
+Independent Comparisons =       1689        1998        2352        2367
+OverAll r^2 =                 0.004148    0.004658    0.005285    0.005649
+Expected r^2 Sample =         0.006325    0.006293    0.006321    0.006330
+Estimated Ne^ =               Infinite    Infinite    Infinite    Infinite
+
+95% CIs for Ne^
+* Parametric                  Infinite    Infinite    Infinite    Infinite
+                              Infinite    Infinite    Infinite    Infinite
+
+* JackKnife on Samples        Infinite    Infinite       290.9        96.0
+                              Infinite    Infinite    Infinite    Infinite
+
+**************************************************************************
+
+Ending time: Mon May  2 11:04:10 2022
+-------------------------------------
+
