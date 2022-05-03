@@ -18,7 +18,7 @@ Within this markdown file, we follow the same order of analyses as described in 
 # Libraries
 The following packages were used in the analyses:
 
-```{r libraries, error=FALSE, warning=FALSE}
+```{r libraries, error=FALSE, warning=FALSE, message=F}
 library(tidyverse);library(adegenet); library(pegas)
 library(data.table);library(hierfstat); library(plot.matrix); library(lme4)
 library(forcats); library(ape); library(ParallelStructure)
@@ -30,24 +30,23 @@ library(RColorBrewer); library(extrafont); library(devtools);library(gridExtra)
 # Data
 
 ## Adults
-Raw datasheets are provided in three different formats: unsplit genotypes
-with one row per individual, structure datafiles with two consecutive rows per 
-individual, with alleles split up in different rows. In both these files,
-populations are coded as integers. A full, easy to read RData file can be found
-including all details on the sites and hunted status, as well as animal sex.
+Raw datasheets are provided in three different formats: 1) unsplit genotypes
+with one row per individual, 2) STRUCTURE (.stru) datafiles with two consecutive rows 
+per individual, one row per allele. In both these files,
+populations are coded as integers. Thirdly, a full, easy to read .RData can be 
+found including all details on the sites and hunted status, as well as sex.
 
-
-```{r data, warning=FALSE, message=FALSE}
+```{r data, warning=FALSE, message=FALSE, error=F}
 base::load("data/rawdata/Fulldata_adults.RData")
 hunted.ad$site <- as.factor(hunted.ad$site)
 summary(hunted.ad[,c(3,7,8,9)])
 
 #structure file to summarise genotypes
 adults.stru.raw <- read.structure("data/rawdata/Microsat.adults.forstructure.stru", 
-                         n.ind = 1878, n.loc = 13, onerowperind = F,
+                         n.ind = 1878, n.loc = 14, onerowperind = F,
                          col.lab = 1, col.pop = 2, col.others = NULL,
                          row.marknames = 0, NA.char = "-9", pop = NULL, 
-                         sep = NULL,ask = F, quiet = FALSE) 
+                         sep = NULL,ask = F, quiet = TRUE) 
 
 summary(adults.stru.raw)
 ```
@@ -56,6 +55,7 @@ summary(adults.stru.raw)
 base::load("data/rawdata/Fulldata_chicks.RData")
 hunted.chick$Site <- as.factor(hunted.chick$Site)
 hunted.chick$hunt <- as.factor(hunted.chick$hunt)
+hunted.chick$sex <- droplevels(hunted.chick$sex)
 summary(hunted.chick[,c(2,9,3,4)])
 
 #structure file to summarise genotypes
@@ -63,7 +63,7 @@ chicks.stru.raw <- read.structure("data/rawdata/Microsat.chicks.forstructure.str
                          n.ind = 1370, n.loc = 12, onerowperind = F,
                          col.lab = 1, col.pop = 2, col.others = NULL,
                          row.marknames = 0, NA.char = "-9", pop = NULL, 
-                         sep = NULL, ask = F, quiet = FALSE) 
+                         sep = NULL, ask = F, quiet = TRUE) 
 
 summary(chicks.stru.raw)
 ```
@@ -80,6 +80,7 @@ contains closely related individuals sampled from the same broods.
 # First all together
 adultHWE.all <- pegas::hw.test(adults.stru.raw, B = 1000) 
 #B = 1000 for 1000 Monte Carlo permutations 
+
 summary(adultHWE.all )
 
 # Then per population using a for loop
@@ -112,54 +113,51 @@ adultHWE.t[nums] <- lapply(adultHWE.t[nums], as.numeric)
 adultHWE.t[,c(2:15)]<- round(adultHWE.t[,c(2:15)], 2)
 head(adultHWE.t)
 
-# this table now includes Hobs, Hexp, pexact, qval.FDR and qval.bon
-# for each locus (columns) for each site
-# the full output of the table can be found in Supplementary Table 3
-
-# subsequently, we exclude locus 1, and 13 as FDR-corrected q-values indicate 
-# violation of assumption of HWE in over 70% of the sites
-
 ```
+This table includes Hobs, Hexp, pexact, qval.FDR and qval.bon for each locus 
+in (columns) for each site. The full output of the table can be found in 
+Supplementary Table 3. We included a threshold in which a locus was excluded
+if the FDR-corrected value was lower than 0.05 in over 70% of the sites. 
+Subsequently, we exclude locus 1 and 13 in both adult and chick data.
 
 ---
 # Analysing population structure
 
-To investigate general patterns of genetic differentiation, we calculated
-pairwise F_{ST} values, conducted an AMOVA (in GUI based software Arlequin, not
-R), Mantel tests and spatial auto-correaltion in GenAlEx (Excel add-in, not R).
+To investigate patterns of genetic differentiation, we calculated
+pairwise F~ST~ values in R, conducted an AMOVA (in GUI based software Arlequin, 
+not R), and executed Mantel tests and spatial auto-correlation in GenAlEx 
+(Excel add-in, not R).
 
 Here, we go through calculating summary statistics, constructing a PCA to
-get a grasp of the distribution of our data, and calculating the pairwise F_{ST} 
-values for adult males, adult females and chicks separately.
+get a grasp of the distribution of our data and identify potential outliers, 
+and calculating the pairwise F~ST~ values for adult males, adult females and 
+chicks separately.
 
-```{r pca and fst males, warning = FALSE, message=FALSE}
+```{r fst, warning = FALSE, message=FALSE,fig.height=8,fig.width=8}
 
 #using filtered structure files excluding loci out of HWE
-males.stru <- read.structure("data/cleandata/
-                             Microsat.males.noLOCUS1+13.forstructure.stru", 
+males.stru <- read.structure("data/cleandata/Microsat.males.noLOCUS1+13.forstructure.stru", 
                              n.ind = 1065, n.loc = 12, onerowperind = F,
                              col.lab = 1, col.pop = 2, col.others = NULL,
                              row.marknames = 0, NA.char = "-9", pop = NULL, 
-                             sep = NULL, ask = F, quiet = FALSE)
+                             sep = NULL, ask = F, quiet = T)
 
-females.stru <- read.structure("data/cleandata/
-                               Microsat.females.noLOCUS1+13.forstructure.stru", 
+females.stru <- read.structure("data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru", 
                                n.ind = 813, n.loc = 12, onerowperind = F,
                                col.lab = 1, col.pop = 2, col.others = NULL,
                                row.marknames = 0, NA.char = "-9", pop = NULL, 
-                               sep = NULL, ask = F, quiet = FALSE)
+                               sep = NULL, ask = F, quiet = T)
 
-chicks.stru <- read.structure("data/cleandata/
-                              Microsat.chicks.noLOCUS1+13+14.forstructure.stru", 
+chicks.stru <- read.structure("data/cleandata/Microsat.chicks.noLOCUS1+13+14.forstructure.stru", 
                               n.ind = 1370, n.loc = 11, onerowperind = F,
                               col.lab = 1, col.pop = 2, col.others = NULL,
                               row.marknames = 0, NA.char = "-9", pop = NULL, 
-                              sep = NULL, ask = F, quiet = FALSE)
+                              sep = NULL, ask = F, quiet = T)
 
 all <- read.structure("data/rawdata/Microsat.all.stru", n.ind = 3248, n.loc = 14, 
                        onerowperind = F, col.lab = 1, col.pop = 2, col.others = NULL,
                        row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
-                       ask = F, quiet = FALSE)
+                       ask = F, quiet = T)
 
 #### Summary statistics ####
 
@@ -274,29 +272,16 @@ pairwise.fst.males <- pairwise.fst.males %>% mutate(Significance = case_when(
   UL > 0 & LL < 0 ~ "insignificant",
   UL < 0 & LL < 0 ~ "significant" ))
 
-```
-```{r plot fst males, echo=F, warning=F, message=F}
-
-mypalette3 <- c("#EDEDFD","#C2C1EC","#9795DB","#6C69C9","#413DB8","#1611A7") #purples from structure
+mypalette3 <- c("#EDEDFD","#C2C1EC","#9795DB","#6C69C9","#413DB8","#1611A7") 
 theme_set(theme_classic())
 
 pairwise.fst.males <- read.csv("data/tables/Pairwise_Fst_males.csv")
-pairwise.fst.females <- read.csv("data/tables/Pairwise_Fst_females.csv")
-pairwise.fst.chicks <- read.csv("data/tables/Pairwise_Fst_chicks.csv")
+# contains abbreviations
 
-# add abbreviation to data
-sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
-# add abbreviations to sitenames
-sitenames$abb <- c("KOS", "KUM", "LAU", "LEH", "NYR", "PAL", "PIH", "PIL", "PIS", "SAA", "TEE", "UTU")
-
-pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.x" = "pop_num"))
-pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.y" = "pop_num"))
-
-### Males - pairwise Fst heatmap
 ggplot(pairwise.fst.males, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
   scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
   geom_text(aes(label = Sig), size = 8)+
-  theme(text = element_text(family = "Arial", size = 22),
+  theme(text = element_text(size = 22),
         axis.text.x = element_text(angle = 90, size = 22,
                                    face = c("bold", "plain", "bold", "plain", "plain",
                                             "bold", "bold", "plain", "bold",
@@ -366,13 +351,14 @@ pairwise.fst.females <- pairwise.fst.females %>% mutate(Significance = case_when
   UL < 0 & LL < 0 ~ "significant" ))
 
 ```
-```{r plot females, warning=F, echo=F, message=F}
-
+```{r plot females, warning=F, echo=F, message=F, fig.height=8,fig.width=8}
+pairwise.fst.females <- read.csv("data/tables/Pairwise_Fst_females.csv") 
+#file contains abbreviations 
 ### Females - pairwise Fst heatmap
 ggplot(pairwise.fst.females, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
   scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
   geom_text(aes(label = Sig), size = 8)+ 
-  theme(text = element_text(family = "Arial", size = 22),
+  theme(text = element_text(size = 22),
         axis.text.x = element_text(angle = 90, size = 22,
                                    face = c("bold", "plain", "bold", "plain", "plain",
                                             "bold", "bold", "plain", "bold",
@@ -439,11 +425,24 @@ pairwise.fst.chicks <- pairwise.fst.chicks %>% mutate(Significance = case_when(
 
 ```
 ```{r plot chicks, warning=F, message=F, echo=F}
+pairwise.fst.chicks <- read.csv("data/tables/Pairwise_Fst_chicks.csv")
+
+# add abbreviation to data
+sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+# add abbreviations to sitenames
+sitenames$abb <- c("KOS", "KUM", "LAU", "LEH", "NYR", "PAL", "PIH", "PIL", "PIS", "SAA", "TEE", "UTU")
+
+pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.x" = "pop_num"))
+pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.y" = "pop_num"))
+
 ### Chicks - Pairwise FST
+```
+
+```{r plot chick fst, warning=F, message=F,fig.height=8,fig.width=8}
 chicks.fst <- ggplot(pairwise.fst.chicks, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
   scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
   geom_text(aes(label = Sig), size = 8)+ 
-  theme(text = element_text(family = "Helvetica", size = 22),
+  theme(text = element_text(size = 22),
         axis.text.x = element_text(angle = 90, size = 22,
                                    face = c("bold", "plain", "plain", 
                                             "plain", "plain", "plain")), 
@@ -551,7 +550,8 @@ ID_var <- as.character(sapply(c(1:up_to_k), function(k)
 # make the job matrix
 pop <- "1,2,4,5,10,11,12" #number of pops in the file
 
-hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, rep(burnin, nrep * up_to_k),
+hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, 
+                      rep(burnin, nrep * up_to_k),
                       rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
 
 write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), 
@@ -599,8 +599,7 @@ ggplot(ks_ad_male, aes(x = k, y = elpdmean)) +
   scale_y_continuous(breaks = c(-43000, -41000, -39000),
                      labels = c("-43K", "-41K", "-39K"))+
   theme_classic()+
-  theme(text = element_text(family = "Arial"),
-        axis.title = element_text(face = "bold"),
+  theme(axis.title = element_text(face = "bold"),
         axis.title.x = element_text(size = 22),
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
@@ -616,8 +615,7 @@ ggplot(ks_ad_fem, aes(x = k, y = elpdmean)) +
                      labels = c("-40K", "-36K", "-32K"))+
   geom_errorbar(aes(ymin = elpdmin, ymax = elpdmax), width = 0.1, col = "gray45") +
   theme_classic() +
-  theme(text = element_text(family = "Arial"),
-        axis.title = element_text(face = "bold"),
+  theme(axis.title = element_text(face = "bold"),
         axis.title.x = element_text(size = 22),
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
@@ -630,8 +628,7 @@ ggplot(ks_chick, aes(x = k, y = elpdmean)) +
   scale_y_continuous(breaks = c(-4000000, -2000000, 0),
                      labels = c("-4M", "-2M", "0"))+
   theme_classic() +
-  theme(text = element_text(family = "Arial"),
-        axis.title = element_text(face = "bold"),
+  theme(axis.title = element_text(face = "bold"),
         axis.title.x = element_text(size = 22),
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
@@ -704,7 +701,7 @@ summary(sMLH_chicks)
 het_var_chicks
 ```
 
-```{r smlh model, warning=F, echo=F, message=F}
+```{r smlh modelsetup, warning=F, echo=F, message=F}
 # Loaded in clean version of sMLH and split by sex/age class
 load(file = "data/cleandata/sMLH.all.RData")
 
@@ -727,9 +724,10 @@ ggplot(sMLH.chicks, aes(x=sMLH)) + geom_histogram() +theme_classic() +
 
 # not perfectly normal, but good enough. also tried the below models with 
 # both a poisson and gamma distribution, which had a bad fit
+```
+```{r smlh modelling, warning=F, message=F}
 
 ### Setup models ####
-
 #male model
 sMLH.model.males.lmer <- lmerTest::lmer(sMLH ~ hunt + pop*year + hunt*year + 
                                           (1|pop)+ (1|year) , data = sMLH.males)
@@ -796,7 +794,7 @@ icc(model = sMLH.model.chicks.lmer_noerror, by_group = TRUE)
 
 # Migration models
 
-Next, we investigate patterns of dispersion and how these are affected
+Next, we investigated patterns of dispersion and how these are affected
 by hunting. We used BA3 to calculate migration directions and rates,
 followed by building mixed models to estimate the effect of hunting on migration.
 
@@ -962,7 +960,9 @@ plot(female_run4$migration, female_run5$migration)
 # all runs correspond
 
 ## Going to pick run 5 for both
+```
 
+```{r migrationclean, warning=F,message=F,tidy=TRUE}
 #### Load in cleaned migration files ####
 # again, see R script 5.migrationmodels.R for details on how to merge
 # raw BA3 files with ESS, how the migration values were corrected (set to NA
@@ -978,7 +978,6 @@ female_run5_clean <- subset(female_run5_clean, m_in != m_out)
 
 #### Modelling migration ####
 
-names(female_run5_clean) == names(male_run5_clean)
 female_run5_clean$sex <- "Female"
 male_run5_clean$sex <- "Male"
 
@@ -1063,14 +1062,15 @@ r.squaredGLMM(model.both.in.TMB)
 r.squaredGLMM(model.both.in.TMB.inter)
 
 ```
-#Other plots included in the manuscript
+
+# Other plots included in the manuscript
 
 Figure 1 was created with qGIS, for barcharts of STRUCTURE output as in 
 Supplementary Figure 2, please refer to R script 6.CreatingPlots.R
 
-```{r plots, warning=F, message=F}
+```{r plots, warning=F, message=F, fig.height=8, fig.weight=8}
 
-### Figure 2 - correlograms ###
+### Figure 2 - correlograms
 spatial <- read_excel("data/tables/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
 
 ### Males - spatial
@@ -1083,7 +1083,7 @@ spatial %>% filter(Who == "Male") %>% ggplot(aes(x = What)) +
   ylim(-0.03, 0.035) +
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
-  theme(text = element_text(family = "Arial", size = 14),
+  theme(text = element_text(size = 14),
         plot.title = element_text(size = 38),
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
@@ -1101,7 +1101,7 @@ spatial %>% filter(Who == "Females") %>% ggplot(aes(x = What)) +
   ylim(-0.03, 0.035) +
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
-  theme(text = element_text(family = "Helvetica", size = 14),
+  theme(text = element_text(size = 14),
         plot.title = element_text(size = 38),
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
@@ -1119,7 +1119,7 @@ spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) +
   ylim(-0.03, 0.035) +
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
-  theme(text = element_text(family = "Arial", size = 14),
+  theme(text = element_text(size = 14),
         plot.title = element_text(size = 38),
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
@@ -1130,7 +1130,6 @@ spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) +
 male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
 female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
 
-names(female_run5_clean) == names(male_run5_clean)
 female_run5_clean$sex <- "Female"
 male_run5_clean$sex <- "Male"
 
@@ -1152,7 +1151,7 @@ ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) +
   ylim(0, 0.03)+
   labs(title = "(a) Emigration rates") + 
   ylab("Migration rate")+
-  theme(text = element_text(family = "Arial", size = 26),
+  theme(text = element_text(size = 26),
         legend.text = element_text(size = 28),
         legend.title = element_text(size = 28),
         legend.key.size = unit(1, 'cm'),
@@ -1172,7 +1171,7 @@ ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) +
   ylim(0, 0.03)+
   labs(title = "(b) Immigration rates") + 
   ylab("Migration rate")+
-  theme(text = element_text(family = "Arial", size = 26),
+  theme(text = element_text(size = 26),
         legend.text = element_text(size = 28),
         legend.title = element_text(size = 28),
         legend.key.size = unit(1, 'cm'),
@@ -1184,3 +1183,10 @@ ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) +
                                "Female" = "#be4d5a"),
                     labels=c("Male", "Female"))+
   guides(fill = guide_legend("Sex"))
+```
+
+See below session information including package versions.
+
+``` {r setup, warning=F,message=F, tidy=TRUE}
+session_info()
+```
