@@ -4,29 +4,26 @@
 # 3) calculate pairwise Fst
 
 ## load libraries
-library(data.table); library(dplyr); library(ggplot2)
-library(hierfstat); library(plot.matrix); library(lme4); library(adegenet); library(forcats)
+library(data.table); library(tidyverse); library(hierfstat); 
+library(plot.matrix); library(lme4); library(adegenet); library(forcats)
 library(ape)
 
-setwd("/Volumes/rchen2/Black Grouse PhD/Projects/Hunting_Microsats/Clean+final_analysis/ScriptsHuntingFinal/GithubDirectory") #set to directory of github repository
-setwd("P:\\Black Grouse PhD\\Projects\\Hunting_Microsats\\Clean+final_analysis\\ScriptsHuntingFinal\\GithubDirectory") #set to directory of github repository
-
-males.stru <- read.structure("data/Microsat.males.noLOCUS1+13.forstructure.stru", n.ind = 1065, n.loc = 12, onerowperind = F,
+males.stru <- read.structure("data/cleandata/Microsat.males.noLOCUS1+13.forstructure.stru", n.ind = 1065, n.loc = 12, onerowperind = F,
                              col.lab = 1, col.pop = 2, col.others = NULL,
                              row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                              ask = F, quiet = FALSE)
 
-females.stru <- read.structure("data/Microsat.females.noLOCUS1+13.forstructure.stru", n.ind = 813, n.loc = 12, onerowperind = F,
+females.stru <- read.structure("data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru", n.ind = 813, n.loc = 12, onerowperind = F,
                                col.lab = 1, col.pop = 2, col.others = NULL,
                                row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                                ask = F, quiet = FALSE)
 
-chicks.stru <- read.structure("data/Microsat.chicks.noLOCUS1+13+14.forstructure.stru", n.ind = 1370, n.loc = 11, onerowperind = F,
+chicks.stru <- read.structure("data/cleandata/Microsat.chicks.noLOCUS1+13+14.forstructure.stru", n.ind = 1370, n.loc = 11, onerowperind = F,
                               col.lab = 1, col.pop = 2, col.others = NULL,
                               row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                               ask = F, quiet = FALSE)
 
-all <- read.structure ("data/Microsat.all.stru", n.ind = 3248, n.loc = 14, onerowperind = F,
+all <- read.structure ("data/cleandata/Microsat.all.stru", n.ind = 3248, n.loc = 14, onerowperind = F,
                        col.lab = 1, col.pop = 2, col.others = NULL,
                        row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                        ask = F, quiet = FALSE)

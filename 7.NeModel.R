@@ -6,11 +6,11 @@ library(tidyverse); library(RLDNe); library(data.table)
 ## load in data and only pick years 2005 and 2007
 ## only for adult males and females, seperately, as well as hunting seperately
 
-males <- fread("data/Unsplit.microsat.males.noLOCUS1+13.csv")
-females <- fread("data/Unsplit.microsat.females.noLOCUS1+13.csv") 
+males <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv")
+females <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv") 
 
 # include year and hunted/unhunted in dataframes
-load("data/Microsats_hunted_adults_combined.25.3.22_CLEAN.RData")
+load("data/rawdata/Fulldata_adults.RData")
 
 males.df <- right_join(hunted.ad[,c(1,3,8)], males)
 females.df <- right_join(hunted.ad[,c(1,3,8)], females)
@@ -35,10 +35,10 @@ nrow(females.hunted.df) + nrow(females.unhunted.df)
 # nrow(females.hunted.df) + nrow(females.unhunted.df)
 
 ## write out as tables
-write.csv(males.hunted.df, "data/NeEstimator/NeEstimator.males.hunted.txt", quote = F, row.names=F)
-write.csv(males.unhunted.df, "data/NeEstimator//NeEstimator.males.unhunted.txt", quote = F, row.names=F)
-write.csv(females.hunted.df, "data/NeEstimator//NeEstimator.females.hunted.txt", quote = F, row.names=F)
-write.csv(females.unhunted.df, "data/NeEstimator//NeEstimator.females.unhunted.txt", quote = F, row.names=F)
+write.csv(males.hunted.df, "data/neestimator/NeEstimator.males.hunted.txt", quote = F, row.names=F)
+write.csv(males.unhunted.df, "data/neestimator//NeEstimator.males.unhunted.txt", quote = F, row.names=F)
+write.csv(females.hunted.df, "data/neestimator//NeEstimator.females.hunted.txt", quote = F, row.names=F)
+write.csv(females.unhunted.df, "data/neestimator//NeEstimator.females.unhunted.txt", quote = F, row.names=F)
 
 #### NeEstimator #####
 
@@ -52,7 +52,7 @@ gpfile_femaleshunted <- write_genepop_zlr(loci = females.df[,5:ncol(females.df)]
 
 
 #males hunted
-setwd("data/NeEstimator/")
+setwd("data/neestimator/")
 
 gpfile_maleshunted <- write_genepop_zlr(loci = males.hunted.df[,5:ncol(males.hunted.df)], pops=males.hunted.df$pop,
                                         ind.ids = males.hunted.df$id, folder = "", filename="genepop_output_maleshunted.txt",

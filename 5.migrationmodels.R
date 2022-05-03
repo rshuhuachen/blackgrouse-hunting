@@ -8,12 +8,12 @@ library(data.table); library(tidyverse); library(tibble); library(MuMIn)
 library(lme4); library(lmerTest); library(readxl); library(DHARMa);library(glmmTMB); library(performance)
 
 # load in pop data
-#setwd("P:\\Black Grouse PhD\\Projects\\Hunting_Microsats\\Clean+final_analysis\\ScriptsHuntingFinal\\blackgrouse-hunting\\")
-pops <- read.csv("data/Codes.pops.both.filtered_withcoord.csv")
+
+pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
 pops$pop_num <- as.factor(pops$pop_num)
 
 ## load in Matrix distances between sites ##
-distance <- read_excel("data/CalculateDistanceSitesGenAlEx.xlsx", sheet = "MatrixForR")
+distance <- read_excel("data/details/CalculateDistanceSitesGenAlEx.xlsx", sheet = "MatrixForR")
 names(distance)[1] <- "Site_A"
 
 distance_long <- melt(distance)
@@ -22,7 +22,7 @@ distance_long <- subset(distance_long, distance_long$Site_A != distance_long$Sit
 
 ####### Reformatting for BA3 #######
 
-male.stru <- fread("data/Microsat.males.noLOCUS1+13.forstructure.stru")
+male.stru <- fread("data/cleandata/Microsat.males.noLOCUS1+13.forstructure.stru")
 head(male.stru)
 names(male.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
                       "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
@@ -44,12 +44,12 @@ ba3.male <- left_join(ba3.male.a, ba3.male.b, by = c("indivID", "popID", "locID"
 
 head(ba3.male)
 
-write.table(ba3, "data/data_males_ba3.txt",
+write.table(ba3, "data/migrationanalysis/data_males_ba3.txt",
             col.names = T, row.names = F, sep = " ", quote = F)
 
 
 #females
-female.stru <- fread("data/Microsat.females.noLOCUS1+13.forstructure.stru")
+female.stru <- fread("data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru")
 head(female.stru)
 names(female.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
                       "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
@@ -71,7 +71,7 @@ ba3.female <- left_join(ba3.female.a, ba3.female.b, by = c("indivID", "popID", "
 
 head(ba3.female)
 
-write.table(ba3, "data/data_females_ba3.txt",
+write.table(ba3, "data/migrationanalysis/data_females_ba3.txt",
             col.names = T, row.names = F, sep = " ", quote = F)
 
 #### Running BA3 ####
@@ -79,38 +79,37 @@ write.table(ba3, "data/data_females_ba3.txt",
 ## males
 #install BA3, run through command line/terminal
 
-system("mkdir /data/BA3runs/males_run1") #make directory per run
-system("mkdir /data/BA3runs/males_run2") #make directory per run
-system("mkdir /data/BA3runs/males_run3") #make directory per run
-system("mkdir /data/BA3runs/males_run4") #make directory per run
-system("mkdir /data/BA3runs/males_run5") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/males_run1") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/males_run2") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/males_run3") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/males_run4") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/males_run5") #make directory per run
 
 #5 runs with 5 different random seeds
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o males_run1.txt /data/data_males_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o males_run2.txt /data/data_males_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o males_run3.txt /data/data_males_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o males_run4txt /data/data_males_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o males_run5.txt /data/data_males_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o males_run1.txt /data/migrationanalysis/data_males_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o males_run2.txt /data/migrationanalysis/data_males_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o males_run3.txt /data/migrationanalysis/data_males_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o males_run4txt /data/migrationanalysis/data_males_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o males_run5.txt /data/migrationanalysis/data_males_ba3.txt") #change pathname to BA3, random seed generated
 
 ## females
 #install BA3, run through command line/terminal
 
-system("mkdir /data/BA3runs/females_run1") #make directory per run
-system("mkdir /data/BA3runs/females_run2") #make directory per run
-system("mkdir /data/BA3runs/females_run3") #make directory per run
-system("mkdir /data/BA3runs/females_run4") #make directory per run
-system("mkdir /data/BA3runs/females_run5") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/females_run1") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/females_run2") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/females_run3") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/females_run4") #make directory per run
+system("mkdir /data/migrationanalysis/BA3runs/females_run5") #make directory per run
 
 #5 runs with 5 different random seeds
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o females_run1.txt /data/data_females_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o females_run2.txt /data/data_females_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o females_run3.txt /data/data_females_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o females_run4txt /data/data_females_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o females_run5.txt /data/data_females_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o females_run1.txt /data/migrationanalysis/data_females_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o females_run2.txt /data/migrationanalysis/data_females_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o females_run3.txt /data/migrationanalysis/data_females_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o females_run4txt /data/migrationanalysis/data_females_ba3.txt") #change pathname to BA3, random seed generated
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o females_run5.txt /data/migrationanalysis/data_females_ba3.txt") #change pathname to BA3, random seed generated
 
 #### Compare all 10 runs ####
-setwd("data/BA3runs")
-temp <- list.files(pattern = "*.txt")
+temp <- list.files(path = "data/migrationanalysis/BA3runs/", pattern = ".txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
 
 # formula for reshaping the dataframes
@@ -203,6 +202,7 @@ plot(female_run4$migration, female_run5$migration)
 ## Going to pick run 5 for both
 
 #### Clean migration files ####
+setwd("data")
 # to do: add ESS, corrected migration value, hunted status, distance between sites
 
 #first add ESS
@@ -275,15 +275,15 @@ names(female_run5_clean)[10] <- "hunt_out"
 male_run5_clean <- left_join(male_run5_clean, distance_long, by = c("pop_in" = "Site_A", "pop_out" = "Site_B"))
 female_run5_clean <- left_join(female_run5_clean, distance_long, by = c("pop_in" = "Site_A", "pop_out" = "Site_B"))
 
-write.table(male_run5_clean, file = "data/run5_males_clean.csv", sep = ",", row.names = F,quote = F)
-write.table(female_run5_clean, file = "data/run5_females_clean.csv", sep = ",", row.names = F,quote = F)
+write.table(male_run5_clean, file = "data/migrationanalysis/run5_males_clean.csv", sep = ",", row.names = F,quote = F)
+write.table(female_run5_clean, file = "data/migrationanalysis/run5_females_clean.csv", sep = ",", row.names = F,quote = F)
 
 #### Load in clean runs ####
 
 #this file has been cleaned up, hunted status added, distances between sites and corrected migration value excluding those with ESS < 200
 
-male_run5_clean <- read.csv("data/run5_males_clean.csv")
-female_run5_clean <- read.csv("data/run5_females_clean.csv")
+male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
+female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
 
 ## write out as matrix for supplements ##
 males_run5_m <- male_run5_clean[,c(7,9,6)]
@@ -300,13 +300,13 @@ females_run5_se <- pivot_wider(females_run5_se, names_from = "pop_out", values_f
 females_run5_m_raw<- female_run5_clean[,c(7,9,3)]
 females_run5_m_raw <- pivot_wider(females_run5_m_raw, names_from = "pop_out", values_from = "migration")
 
-write.csv(males_run5_m, "males.migration.csv", row.names = F)
-write.csv(males_run5_se, "males.migration.se.csv", row.names = F)
-write.csv(males_run5_m_raw, "males.migration.raw.csv", row.names = F)
+write.csv(males_run5_m, "data/migrationanalysis/males.migration.csv", row.names = F)
+write.csv(males_run5_se, "data/migrationanalysis/males.migration.se.csv", row.names = F)
+write.csv(males_run5_m_raw, "data/migrationanalysis/males.migration.raw.csv", row.names = F)
 
-write.csv(females_run5_m, "females.migration.csv", row.names = F)
-write.csv(females_run5_se, "females.migration.se.csv", row.names = F)
-write.csv(females_run5_m_raw, "females.migration.raw.csv", row.names = F)
+write.csv(females_run5_m, "data/migrationanalysis/females.migration.csv", row.names = F)
+write.csv(females_run5_se, "data/migrationanalysis/females.migration.se.csv", row.names = F)
+write.csv(females_run5_m_raw, "data/migrationanalysis/females.migration.raw.csv", row.names = F)
 
 ### Plotting migration rates from run 5 ####
 #first, exclude the 'non-migration rates' which are those where pop in = pop out

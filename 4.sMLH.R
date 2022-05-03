@@ -8,23 +8,23 @@ library(lmerTest); library(DHARMa); library(performance);library(MuMIn)
 
 #setwd("/Volumes/rchen2/Black Grouse PhD/Projects/Hunting_Microsats/Clean+final_analysis/ScriptsHuntingFinal/GithubDirectory") #set to directory of github repository
 
-sitenames <- read.csv("data/Codes.pops.both.filtered_withcoord.csv") #information for each site
+sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv") #information for each site
 sitenames[1,1] <- "Koskenpää"
 sitenames[5,1] <- "Nyrölä"
 
 #Load in filtered data
-males <- fread("data/Unsplit.microsat.males.noLOCUS1+13.csv") #different format than structure files
+males <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv") #different format than structure files
 males <- as.data.frame(males)
 males <- left_join(males, sitenames[,c(1,2)], by = c("pop" = "pop_num")) #join to have full pop names
 males <- males[,c(1,27,3:26)] #reorganise
 names(males)[2] <- "pop"
 
-females <- fread("data/Unsplit.microsat.females.noLOCUS1+13.csv") 
+females <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv") 
 females <- left_join(females, sitenames[,c(1,2)], by = c("pop" = "pop_num"))
 females <- females[,c(1,27,3:26)] #reorganise
 names(females)[2] <- "pop"
 
-chicks <- fread("data/Unsplit.microsat.chicks.noLOCUS1+13+14.csv")
+chicks <- fread("data/cleandata/Unsplit.microsat.chicks.noLOCUS1+13+14.csv")
 chicks <- as.data.frame(chicks)
 chicks <- left_join(chicks, sitenames[,c(1,2)], by = c("pop" = "pop_num"))
 chicks <- chicks[,c(1,25,3:24)]
@@ -82,7 +82,7 @@ sMLH_females.df <- left_join(sMLH_females.df, females[,c(1,2)], by = "id")
 sMLH_females.df$sex <- "female"
 
 # add together with hunted status
-load("data/Microsats_hunted_adults_combined.25.3.22_CLEAN.RData")
+load("data/rawdata/Fulldata_adults.RData")
 
 sMLH_males.df <- left_join(sMLH_males.df, hunted.ad[,c(1,3,8)], by = c("id")) #select id, year, hunt
 sMLH_males.df <- sMLH_males.df[,c(1,3,5,4,6,7,2)] #rearrange
@@ -99,7 +99,7 @@ sMLH_chicks.df <- tibble::rownames_to_column(sMLH_chicks.df, "id")
 sMLH_chicks.df <- left_join(sMLH_chicks.df, chicks[,c(1,2)], by = "id")
 
 #add with hunted status
-load("data/Microsats_hunted_chicks.4.1.22_CLEAN.RData")
+load("data/rawdata/Fulldata_chicks.RData")
 
 sMLH_chicks.df <- left_join(sMLH_chicks.df, hunted.chick[,c(9,2,13,3)], by = c("id" = "ID")) #select sex, year, id,hunt
 sMLH_chicks.df <- sMLH_chicks.df[,c(1,3,5,4,6,7,2)]
@@ -126,8 +126,8 @@ sMLH.all %>% filter(!is.na(sex)) %>%ggplot(aes(x = age, y = sMLH, col = sex)) +
   geom_boxplot() + theme_classic ()
 
 #### Or: load in sMLH ####
-#save(sMLH.all, file = "data/sMLH.all.RData")
-load(file = "data/sMLH.all.RData")
+#save(sMLH.all, file = "data/cleandata/sMLH.all.RData")
+load(file = "data/cleandata/sMLH.all.RData")
 
 #### Modelling sMLH ####
 

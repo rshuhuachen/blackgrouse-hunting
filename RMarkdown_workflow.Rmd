@@ -19,7 +19,7 @@ Within this markdown file, we follow the same order of analyses as described in 
 # Libraries
 The following packages were used in the analyses:
 
-```{r libraries, echo = FALSE, error=FALSE, warning=FALSE}
+```{r libraries, error=FALSE, warning=FALSE}
 library(tidyverse);library(adegenet); library(pegas)
 library(data.table);library(hierfstat); library(plot.matrix); library(lme4)
 library(forcats); library(ape); library(ParallelStructure)
@@ -31,26 +31,42 @@ library(RColorBrewer); library(extrafont); library(devtools);library(gridExtra)
 # Data
 
 ## Adults
-Raw datasheets are can be downloaded in STRUCTURE format and will be read into 
-R using adegenet.
+Raw datasheets are provided in three different formats: unsplit genotypes
+with one row per individual, structure datafiles with two consecutive rows per 
+individual, with alleles split up in different rows. In both these files,
+populations are coded as integers. A full, easy to read RData file can be found
+including all details on the sites and hunted status, as well as animal sex.
 
-```{r data, echo=FALSE}
-adults <- read.structure("data/rawdata/Microsat.adults.forstructure.stru", 
-                         n.ind = 1878, n.loc = 14, onerowperind = F,
+
+```{r data, warning=FALSE, message=FALSE}
+base::load("data/rawdata/Fulldata_adults.RData")
+hunted.ad$site <- as.factor(hunted.ad$site)
+summary(hunted.ad[,c(3,7,8,9)])
+
+#structure file to summarise genotypes
+adults.stru.raw <- read.structure("data/rawdata/Microsat.adults.forstructure.stru", 
+                         n.ind = 1878, n.loc = 13, onerowperind = F,
                          col.lab = 1, col.pop = 2, col.others = NULL,
                          row.marknames = 0, NA.char = "-9", pop = NULL, 
                          sep = NULL,ask = F, quiet = FALSE) 
 
-summary(adults)
+summary(adults.stru.raw)
 ```
 ## Chicks
-```{r datachicks, echo = FALSE}
-chicks <- read.structure("data/rawdata/Microsat.chicks.forstructure.stru", n.ind = 1370, n.loc = 12, onerowperind = F,
-                         col.lab = 1, col.pop = 2, col.others = NULL,
-                         row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
-                         ask = F, quiet = FALSE) #just need this for HWE
+```{r datachicks, warning=FALSE, message=FALSE}
+base::load("data/rawdata/Fulldata_chicks.RData")
+hunted.chick$Site <- as.factor(hunted.chick$Site)
+hunted.chick$hunt <- as.factor(hunted.chick$hunt)
+summary(hunted.chick[,c(2,9,3,4)])
 
-summary(chicks)
+#structure file to summarise genotypes
+chicks.stru.raw <- read.structure("data/rawdata/Microsat.chicks.forstructure.stru", 
+                         n.ind = 1370, n.loc = 12, onerowperind = F,
+                         col.lab = 1, col.pop = 2, col.others = NULL,
+                         row.marknames = 0, NA.char = "-9", pop = NULL, 
+                         sep = NULL, ask = F, quiet = FALSE) 
+
+summary(chicks.stru.raw)
 ```
 
 # Test for Hardy-Weinberg equilibrium
@@ -58,17 +74,17 @@ summary(chicks)
 We tested for Hardy-Weinberg only in the adult data, as the chick data
 contains closely related individuals sampled from the same broods.
 
-```{r hardyweinberg, echo = FALSE, warning = FALSE}
+```{r hardyweinberg, warning=FALSE, message=FALSE}
 
 #### Testing for Hardy-Weinberg equilibrium ####
 
 # First all together
-adultHWE.all <- pegas::hw.test(adults, B = 1000) 
+adultHWE.all <- pegas::hw.test(adults.stru.raw, B = 1000) 
 #B = 1000 for 1000 Monte Carlo permutations 
 summary(adultHWE.all )
 
 # Then per population using a for loop
-adultpop <- seppop(adults)
+adultpop <- seppop(adults.stru.raw)
 # Run loop
 adultHWE = NULL
 for(i in 1:length(adultpop)) {
@@ -103,5 +119,956 @@ head(adultHWE.t)
 
 # subsequently, we exclude locus 1, and 13 as FDR-corrected q-values indicate 
 # violation of assumption of HWE in over 70% of the sites
+
+```
+
+---
+# Analysing population structure
+
+To investigate general patterns of genetic differentiation, we calculated
+pairwise F_{ST} values, conducted an AMOVA (in GUI based software Arlequin, not
+R), Mantel tests and spatial auto-correaltion in GenAlEx (Excel add-in, not R).
+
+Here, we go through calculating summary statistics, constructing a PCA to
+get a grasp of the distribution of our data, and calculating the pairwise F_{ST} 
+values for adult males, adult females and chicks separately.
+
+```{r pca and fst males, warning = FALSE, message=FALSE}
+
+#using filtered structure files excluding loci out of HWE
+males.stru <- read.structure("data/cleandata/
+                             Microsat.males.noLOCUS1+13.forstructure.stru", 
+                             n.ind = 1065, n.loc = 12, onerowperind = F,
+                             col.lab = 1, col.pop = 2, col.others = NULL,
+                             row.marknames = 0, NA.char = "-9", pop = NULL, 
+                             sep = NULL, ask = F, quiet = FALSE)
+
+females.stru <- read.structure("data/cleandata/
+                               Microsat.females.noLOCUS1+13.forstructure.stru", 
+                               n.ind = 813, n.loc = 12, onerowperind = F,
+                               col.lab = 1, col.pop = 2, col.others = NULL,
+                               row.marknames = 0, NA.char = "-9", pop = NULL, 
+                               sep = NULL, ask = F, quiet = FALSE)
+
+chicks.stru <- read.structure("data/cleandata/
+                              Microsat.chicks.noLOCUS1+13+14.forstructure.stru", 
+                              n.ind = 1370, n.loc = 11, onerowperind = F,
+                              col.lab = 1, col.pop = 2, col.others = NULL,
+                              row.marknames = 0, NA.char = "-9", pop = NULL, 
+                              sep = NULL, ask = F, quiet = FALSE)
+
+all <- read.structure("data/rawdata/Microsat.all.stru", n.ind = 3248, n.loc = 14, 
+                       onerowperind = F, col.lab = 1, col.pop = 2, col.others = NULL,
+                       row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
+                       ask = F, quiet = FALSE)
+
+#### Summary statistics ####
+
+# This is based on all individuals and all loci
+basicstat.all <- basic.stats(all, diploid = TRUE, digits = 2) 
+allelic.richness.all <- allelic.richness(all, diploid = TRUE)
+
+#Ar
+allelic.richness.all.df <- as.data.frame(allelic.richness.all$Ar)
+head(allelic.richness.all.df)
+# full table of allelic richness can be found in Supplementary Table 1
+
+#get mean Ho and Hx per pop
+x.pop = seppop(all) 
+summary.by.pop = lapply(x.pop, summary) 
+Hobs.ls = rep(NA, length(summary.by.pop)) 
+for (i in 1:length(summary.by.pop)){ 
+  Hobs.ls[i] = mean(summary.by.pop[[i]]$Hobs, na.rm=TRUE) 
+} 
+Hobs.ls
+
+Hexp.ls = rep(NA, length(summary.by.pop)) 
+for (i in 1:length(summary.by.pop)){ 
+  Hexp.ls[i] = mean(summary.by.pop[[i]]$Hexp, na.rm=TRUE) 
+} 
+Hexp.ls
+
+#### PCA ####
+
+## males
+x.males <- tab(males.stru, freq=TRUE, NA.method="mean")
+pca.males <- dudi.pca(x.males, center=TRUE, scale=FALSE, scannf=F, nf=3) 
+
+s.class(pca.males$li, fac=pop(males.stru), col=funky(15), sub = "PCA males")
+
+# percentages of variation explained
+eig.perc.males <- 100*pca.males$eig/sum(pca.males$eig)
+head(eig.perc.males) 
+
+## females
+x.females <- tab(females.stru, freq=TRUE, NA.method="mean")
+pca.females <- dudi.pca(x.females, center=TRUE, scale=FALSE, scannf=F, nf=3) 
+s.class(pca.females$li, fac=pop(females.stru), col=funky(15), sub = "PCA females") 
+
+# percentages of variation explained
+eig.perc.females <- 100*pca.females$eig/sum(pca.females$eig)
+head(eig.perc.females) 
+
+## chicks
+x.chicks <- tab(chicks.stru, freq=TRUE, NA.method="mean")
+pca.chicks <- dudi.pca(x.chicks, center=TRUE, scale=FALSE, scannf=F, nf=3) 
+s.class(pca.chicks$li, fac=pop(chicks.stru), col=funky(16), sub = "PCA chicks")
+
+# percentages of variation explained
+eig.perc.chicks <- 100*pca.chicks$eig/sum(pca.chicks$eig)
+head(eig.perc.chicks) 
+
+#### Calculate Fst ####
+
+## Males 
+#convert to hfstat object
+males.hfstat <- genind2hierfstat(males.stru)
+#calculate stats
+basicstat.males <- basic.stats(males.stru, diploid = TRUE, digits = 2) 
+
+# per locus
+fst.males.perlocus <- basicstat.males$perloc$Fst
+fst.males.perlocus <- data.frame(Locus = seq(from = 1, to = 12),
+                                 Fst = fst.males.perlocus)
+
+# Pairwise Fst
+fst.males <- pairwise.neifst(males.hfstat)
+head(fst.males)
+
+# Fst per population
+boxplot(fst.males, col=funky(nPop(males.stru)), las=3,
+        xlab="Population", ylab="Fst", 
+        main = "Pairwise Fst values per population only males") 
+#pop 6 only has 1 sample
+
+#Bootstrap
+boot.fst.males <- boot.ppfst(males.hfstat, nboot = 1000) 
+
+#create a long dataframe for pairwise Fst
+boot.fst.males.UL <- boot.fst.males$ul
+boot.fst.males.LL <- boot.fst.males$ll
+
+flat.matrix <- function(d){
+  data.frame(i=rep(row.names(d),ncol(d)),
+             j=rep(colnames(d),each=nrow(d)),
+             score=as.vector(d))
+}
+
+fst.males.flat <- flat.matrix(fst.males)
+names(fst.males.flat) <- c("site.x", "site.y", "Fst")
+
+boot.fst.males.LL.flat <- flat.matrix(boot.fst.males.LL)
+names(boot.fst.males.LL.flat) <- c("site.x", "site.y", "LL")
+
+boot.fst.males.UL.flat <- flat.matrix(boot.fst.males.UL)
+names(boot.fst.males.UL.flat) <- c("site.x", "site.y", "UL")
+
+pairwise.fst.males <- left_join(fst.males.flat, boot.fst.males.LL.flat, 
+                                by = c("site.x", "site.y"))
+pairwise.fst.males <- left_join(pairwise.fst.males, boot.fst.males.UL.flat, 
+                                by = c("site.x", "site.y"))
+
+pairwise.fst.males <- subset(pairwise.fst.males, site.x != "-9" & site.y != "-9")
+pairwise.fst.males <- subset(pairwise.fst.males, !is.na(Fst) & !is.na(UL))
+pairwise.fst.males <- pairwise.fst.males %>% mutate(Significance = case_when(
+  UL > 0 & LL > 0 ~ "significant",
+  UL > 0 & LL < 0 ~ "insignificant",
+  UL < 0 & LL < 0 ~ "significant" ))
+
+#write.csv(pairwise.fst.males, "data/tables/Pariwise_Fst_males.csv", quote=F,row.names=F)
+
+```
+```{r plot fst males, echo=F, warning=F, message=F}
+
+mypalette3 <- c("#EDEDFD","#C2C1EC","#9795DB","#6C69C9","#413DB8","#1611A7") #purples from structure
+theme_set(theme_classic())
+
+pairwise.fst.males <- read.csv("data/tables/Pairwise_Fst_males.csv")
+pairwise.fst.females <- read.csv("data/tables/Pairwise_Fst_females.csv")
+pairwise.fst.chicks <- read.csv("data/tables/Pairwise_Fst_chicks.csv")
+
+# add abbreviation to data
+sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+# add abbreviations to sitenames
+sitenames$abb <- c("KOS", "KUM", "LAU", "LEH", "NYR", "PAL", "PIH", "PIL", "PIS", "SAA", "TEE", "UTU")
+
+pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.x" = "pop_num"))
+pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.y" = "pop_num"))
+
+### Males - pairwise Fst heatmap
+ggplot(pairwise.fst.males, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
+  scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
+  geom_text(aes(label = Sig), size = 8)+
+  theme(text = element_text(family = "Arial", size = 22),
+        axis.text.x = element_text(angle = 90, size = 22,
+                                   face = c("bold", "plain", "bold", "plain", "plain",
+                                            "bold", "bold", "plain", "bold",
+                                            "plain", "plain")), 
+        axis.text.y = element_text(size = 22, 
+                                   face = c("plain", "bold", "plain", "plain",
+                                            "bold", "bold", "plain", "bold",
+                                            "plain", "plain", "bold")),
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(),
+        legend.text = element_text(size = 26),
+        legend.title = element_text(size = 26),
+        legend.key.size = unit(1, 'cm'),
+        plot.title = element_text(size = 38),
+        legend.position = c(0.8, 0.3)) +
+  ggtitle('(a) Males') 
+
+```
+```{r fst females, warning=F, message=F}
+
+## Females 
+#convert to hfstat object
+females.hfstat <- genind2hierfstat(females.stru)
+#calculate stats
+basicstat.females <- basic.stats(females.stru, diploid = TRUE, digits = 2) 
+
+# per locus
+fst.females.perlocus <- basicstat.females$perloc$Fst
+fst.females.perlocus <- data.frame(Locus = seq(from = 1, to = 12), 
+                                   Fst = fst.females.perlocus)
+
+# Pairwise Fst
+fst.females <- pairwise.neifst(females.hfstat)
+head(fst.females)
+
+# Fst per population
+boxplot(fst.females, col=funky(nPop(females.stru)), las=3,
+        xlab="Population", ylab="Fst", 
+        main = "Pairwise Fst values per population females") 
+
+#Bootstrap
+boot.fst.females <- boot.ppfst(females.hfstat, nboot = 1000) 
+
+#create long dataframe
+boot.fst.females.UL <- boot.fst.females$ul
+boot.fst.females.LL <- boot.fst.females$ll
+
+fst.females.flat <- flat.matrix(fst.females)
+names(fst.females.flat) <- c("site.x", "site.y", "Fst")
+
+boot.fst.females.LL.flat <- flat.matrix(boot.fst.females.LL)
+names(boot.fst.females.LL.flat) <- c("site.x", "site.y", "LL")
+
+boot.fst.females.UL.flat <- flat.matrix(boot.fst.females.UL)
+names(boot.fst.females.UL.flat) <- c("site.x", "site.y", "UL")
+
+pairwise.fst.females <- left_join(fst.females.flat, boot.fst.females.LL.flat, 
+                                  by = c("site.x", "site.y"))
+pairwise.fst.females <- left_join(pairwise.fst.females, boot.fst.females.UL.flat, 
+                                  by = c("site.x", "site.y"))
+
+pairwise.fst.females <- subset(pairwise.fst.females, site.x != "-9" & site.y != "-9")
+pairwise.fst.females <- subset(pairwise.fst.females, !is.na(Fst) & !is.na(UL))
+pairwise.fst.females <- pairwise.fst.females %>% mutate(Significance = case_when(
+  UL > 0 & LL > 0 ~ "significant",
+  UL > 0 & LL < 0 ~ "insignificant",
+  UL < 0 & LL < 0 ~ "significant" ))
+
+#write.csv(pairwise.fst.females, "data/tables/Pariwise_Fst_females.csv", quote=F,row.names=F)
+```
+```{r plot females, warning=F, echo=F, message=F}
+
+### Females - pairwise Fst heatmap
+ggplot(pairwise.fst.females, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
+  scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
+  geom_text(aes(label = Sig), size = 8)+ 
+  theme(text = element_text(family = "Arial", size = 22),
+        axis.text.x = element_text(angle = 90, size = 22,
+                                   face = c("bold", "plain", "bold", "plain", "plain",
+                                            "bold", "bold", "plain", "bold",
+                                            "plain", "plain")), 
+        axis.text.y = element_text(size = 22, 
+                                   face = c("plain", "bold", "plain", "plain",
+                                            "bold", "bold", "plain", "bold",
+                                            "plain", "plain", "bold")),
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(),
+        legend.text = element_text(size = 26),
+        legend.title = element_text(size = 26),
+        legend.key.size = unit(1, 'cm'),
+        plot.title = element_text(size = 38),
+        legend.position = c(0.8, 0.3)) +
+  ggtitle('(b) Females') 
+
+```
+
+```{fst chicks, warning=F, message=F}
+## Chicks
+chicks.hfstat <- genind2hierfstat(chicks.stru)
+#calculate stats
+basicstat.chicks <- basic.stats(chicks.stru, diploid = TRUE, digits = 2) 
+# per locus
+fst.chicks.perlocus <- basicstat.chicks$perloc$Fst
+fst.chicks.perlocus <- data.frame(Locus = seq(from = 1, to = 11), 
+                                  Fst = fst.chicks.perlocus)
+
+## Pairwise Fst
+fst.chicks <- pairwise.neifst(chicks.hfstat)
+
+#Fst per population for chicks
+boxplot(fst.chicks, col=funky(nPop(chicks.stru)), las=3,
+        xlab="Population", ylab="Fst",
+        main = "Pairwise Fst values per population chicks")
+
+# Bootstrap
+boot.fst.chicks <- boot.ppfst(chicks.hfstat, nboot = 1000) 
+boot.fst.chicks.UL <- boot.fst.chicks$ul
+boot.fst.chicks.LL <- boot.fst.chicks$ll
+
+#create long df
+fst.chicks.flat <- flat.matrix(fst.chicks)
+names(fst.chicks.flat) <- c("site.x", "site.y", "Fst")
+
+boot.fst.chicks.LL.flat <- flat.matrix(boot.fst.chicks.LL)
+names(boot.fst.chicks.LL.flat) <- c("site.x", "site.y", "LL")
+
+boot.fst.chicks.UL.flat <- flat.matrix(boot.fst.chicks.UL)
+names(boot.fst.chicks.UL.flat) <- c("site.x", "site.y", "UL")
+
+pairwise.fst.chicks <- left_join(fst.chicks.flat, boot.fst.chicks.LL.flat, 
+                                 by = c("site.x", "site.y"))
+pairwise.fst.chicks <- left_join(pairwise.fst.chicks, boot.fst.chicks.UL.flat, 
+                                 by = c("site.x", "site.y"))
+
+pairwise.fst.chicks <- subset(pairwise.fst.chicks, site.x != "-9" & site.y != "-9")
+pairwise.fst.chicks <- subset(pairwise.fst.chicks, !is.na(Fst) & !is.na(UL))
+pairwise.fst.chicks <- pairwise.fst.chicks %>% mutate(Significance = case_when(
+  UL > 0 & LL > 0 ~ "significant",
+  UL > 0 & LL < 0 ~ "insignificant",
+  UL < 0 & LL < 0 ~ "significant" ))
+
+#write.csv(pairwise.fst.chicks, "data/tables/Pariwise_Fst_chicks.csv", quote=F,row.names=F)
+
+```
+```{r plot chicks, warning=F, message=F, echo=F}
+### Chicks - Pairwise FST
+chicks.fst <- ggplot(pairwise.fst.chicks, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
+  scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
+  geom_text(aes(label = Sig), size = 8)+ 
+  theme(text = element_text(family = "Helvetica", size = 22),
+        axis.text.x = element_text(angle = 90, size = 22,
+                                   face = c("bold", "plain", "plain", 
+                                            "plain", "plain", "plain")), 
+        axis.text.y = element_text(size = 20, 
+                                   face = c("plain", "plain", "plain", "plain",
+                                            "plain", "bold")),
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(),
+        legend.text = element_text(size = 26),
+        legend.title = element_text(size = 26),
+        legend.key.size = unit(1, 'cm'),
+        plot.title = element_text(size = 38),
+        legend.position = c(0.8, 0.3)) +
+  ggtitle("(c) Chicks ")
+```
+
+# Structure analysis
+
+We used ParallelStructure to run STRUCTURE on multiple cores. Details on 
+inferring the highest likelihood K and plotting the barcharts can be 
+found in the full script within the GitHub directory called 
+3.STRUCTUREanalysis.R.
+
+Ensure you have enough computational power to conduct this analysis.
+
+```{r structure, warning=FALSE, message=FALSE}
+
+
+##### Running structure for males #####
+
+males <- fread("data/cleandata/Microsat.adults.noLOCUS1+13.forstructure.stru") 
+infile <- "data/cleandata/Microsat.males.noLOCUS1+13.forstructure.stru"
+# system("mkdir data/Results_stru_males")
+outpath <- "data/structure/Results_stru_males/"
+
+# job matrix and write to job file
+nrep <- 10
+burnin <- 10000
+niter <- 10000
+up_to_k <- 12
+
+# job matrix
+k_var <- rep(1:up_to_k, each = nrep)
+ID_var <- as.character(sapply(c(1:up_to_k), function(k) 
+  sapply(c(1:nrep), function(x) paste0("T",k, "_", x))))
+
+# make the job matrix
+pop <- "1,2,3,4,5,6,7,8,9,10,11,12" #number of pops in the file
+
+hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, 
+                      rep(burnin, nrep * up_to_k),
+                      rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
+
+write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), 
+      file = "data/structure/hunt_jobs_adults.txt")
+
+# file path to structure
+
+STR_path='/usr/local/bin/'
+
+# Run Parallel Structure
+
+# Run structure (from terminal, do not run this last part in Rstudio)
+
+ParallelStructure::
+  parallel_structure(structure_path=STR_path, 
+                     joblist='data/structure/hunt_jobs_adults.txt', 
+                     n_cpu=45, infile=infile,outpath=outpath,
+                     numinds = nrow(males)/2,numloci=ncol(males)-2,noadmix = 0, 
+                     alpha = 1.0,freqscorr=1,lambda = 1,printqhat=1,
+                     plot_output=0,onerowperind=0, locprior = 0)
+
+##### Running structure for females #####
+females <- fread("data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru")
+infile <- "data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru"
+# system("mkdir data/Results_stru_females")
+outpath <- "data/structure/Results_stru_females/"
+
+ParallelStructure::
+  parallel_structure(structure_path=STR_path,
+                     joblist='data/structure/hunt_jobs_adults.txt',
+                     n_cpu=45, infile=infile,outpath=outpath,
+                     numinds = nrow(females)/2,numloci=ncol(females)-2,
+                     noadmix = 0, alpha = 1.0,freqscorr=1,lambda = 1,
+                     printqhat=1,plot_output=0,onerowperind=0, locprior = 0)
+
+##### Running structure for chicks #####
+
+chicks <- fread("data/cleandata/Microsat.chicks.noLOCUS1+13+14.forstructure.stru")
+infile <- "data/cleandata/Microsat.chicks.noLOCUS1+13+14.forstructure.stru"
+# system("mkdir data/Results_stru_chicks")
+outpath <- "data/structure/Results_stru_chicks/"
+
+# job matrix and write to job file
+nrep <- 10
+burnin <- 10000
+niter <- 10000
+up_to_k <- 199 #number of broods
+
+# job matrix
+k_var <- rep(1:up_to_k, each = nrep)
+ID_var <- as.character(sapply(c(1:up_to_k), function(k) 
+  sapply(c(1:nrep), function(x) paste0("T",k, "_", x))))
+
+# make the job matrix
+pop <- "1,2,4,5,10,11,12" #number of pops in the file
+
+hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, rep(burnin, nrep * up_to_k),
+                      rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
+
+write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), 
+      file = "data/structure/hunt_jobs_chicks.txt")
+
+# file path to structure
+
+STR_path='/usr/local/bin/'
+
+
+# Run Parallel Structure
+
+# Run structure (from terminal, do not run this last part in Rstudio)
+
+
+ParallelStructure::
+  parallel_structure(structure_path=STR_path,
+                     joblist='/data/structure/hunt_jobs_chicks.txt', 
+                     n_cpu=45, infile=infile,outpath=outpath,
+                     numinds = nrow(chicks)/2,numloci=ncol(chicks)-2, 
+                     noadmix = 0, alpha = 1.0,freqscorr=1,lambda = 1,
+                     printqhat=1,plot_output=0,onerowperind=0, locprior = 0)
+
+
+```
+
+These sex- and age-specific STRUCTURE analyses gave us the following the results:
+
+```{r plots structure, echo=F, message=F, warning=F}
+
+###Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
+
+load("data/structure/ks_ad_fem.R")
+load("data/structure/ks_chick_2.R")
+load("data/structure/ks_ad_male.R")
+
+## plotting K vs mean log likelihood
+
+ggplot(ks_ad_male, aes(x = k, y = elpdmean)) +
+  geom_point() + geom_line()+ ylab("LnPr(X|k)") +
+  scale_x_continuous(name = "k", 
+                     breaks = c(1:12),
+                     labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")) +
+  geom_errorbar(aes(ymin = elpdmin, ymax = elpdmax), width = 0.1, col = "gray45") +
+  scale_y_continuous(breaks = c(-43000, -41000, -39000),
+                     labels = c("-43K", "-41K", "-39K"))+
+  theme_classic()+
+  theme(text = element_text(family = "Arial"),
+        axis.title = element_text(face = "bold"),
+        axis.title.x = element_text(size = 22),
+        axis.title.y = element_text(size = 22),
+        axis.text = element_text(size = 22),
+        plot.title = element_text(size = 22))+ 
+  labs(title = "(a) Adult males")
+
+ggplot(ks_ad_fem, aes(x = k, y = elpdmean)) +
+  geom_point() + geom_line()+ ylab("LnPr(X|k)") +
+  scale_x_continuous(name = "k", 
+                     breaks = c(1:12),
+                     labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")) +
+  scale_y_continuous(breaks = c(-40000, -36000, -32000),
+                     labels = c("-40K", "-36K", "-32K"))+
+  geom_errorbar(aes(ymin = elpdmin, ymax = elpdmax), width = 0.1, col = "gray45") +
+  theme_classic() +
+  theme(text = element_text(family = "Arial"),
+        axis.title = element_text(face = "bold"),
+        axis.title.x = element_text(size = 22),
+        axis.title.y = element_text(size = 22),
+        axis.text = element_text(size = 22),
+        plot.title = element_text(size = 22)) + 
+  labs(title = "(b) Adult females") 
+
+ggplot(ks_chick, aes(x = k, y = elpdmean)) +
+  geom_point() + geom_line()+ ylab("LnPr(X|k)") +
+  geom_errorbar(aes(ymin = elpdmin, ymax = elpdmax), width = 0.1, col = "gray45") +
+  scale_y_continuous(breaks = c(-4000000, -2000000, 0),
+                     labels = c("-4M", "-2M", "0"))+
+  theme_classic() +
+  theme(text = element_text(family = "Arial"),
+        axis.title = element_text(face = "bold"),
+        axis.title.x = element_text(size = 22),
+        axis.title.y = element_text(size = 22),
+        axis.text = element_text(size = 22),
+        plot.title = element_text(size = 22))+ 
+  labs(title = "(c) Chicks")
+
+
+```
+
+# Calculating and modelling sMLH
+
+To quantify inbreeding levels, we calculated sMLH using the inbreedR package.
+Next, to understand the effects of hunting on inbreeding, we built a 
+mixed-model and investigated the fit of the models using various packages.
+
+```{r setup smlh, echo=F, warning=F, message=F}
+sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv") #information for each site
+sitenames[1,1] <- "Koskenpää"
+sitenames[5,1] <- "Nyrölä"
+
+#Load in filtered data
+males.inb <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv") #different format than structure files
+males.inb <- as.data.frame(males.inb)
+males.inb <- left_join(males.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num")) #join to have full pop names
+males.inb <- males.inb[,c(1,27,3:26)] #reorganise
+names(males.inb)[2] <- "pop"
+
+females.inb <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv") 
+females.inb <- left_join(females.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num"))
+females.inb <- females.inb[,c(1,27,3:26)] #reorganise
+names(females.inb)[2] <- "pop"
+
+chicks.inb <- fread("data/cleandata/Unsplit.microsat.chicks.noLOCUS1+13+14.csv")
+chicks.inb <- as.data.frame(chicks.inb)
+chicks.inb <- left_join(chicks.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num"))
+chicks.inb <- chicks.inb[,c(1,25,3:24)]
+names(chicks.inb)[2] <- "pop"
+```
+```{r smlh, warning=F, message=F}
+## Change formats to be loaded into inbreedR (binary where rownames are id's and no populations)
+males.inb <- males.inb %>% remove_rownames %>% column_to_rownames(var="id")
+males.inb <- males.inb[,-1]
+
+females.inb <- females.inb %>% remove_rownames %>% column_to_rownames(var="id")
+females.inb <- females.inb[,-1]
+
+chicks.inb <- chicks.inb %>% remove_rownames %>% column_to_rownames(var="id")
+chicks.inb <- chicks.inb[,-1]
+
+# convert to inbreedR
+males.inb <- convert_raw(males.inb)
+females.inb <- convert_raw(females.inb)
+chicks.inb <- convert_raw(chicks.inb)
+
+#### Calculate sMLH ####
+
+sMLH_females <- sMLH(females.inb) #sMLH
+het_var_females <- var(sMLH_females, na.rm=TRUE) # variance in sMLH
+summary(sMLH_females)
+het_var_females
+
+sMLH_males <- sMLH(males.inb) #sMLH
+het_var_males <- var(sMLH_males, na.rm=TRUE) # variance in sMLH
+summary(sMLH_males)
+het_var_males
+
+sMLH_chicks <- sMLH(chicks.inb)
+het_var_chicks <- var(sMLH_chicks, na.rm=TRUE) # variance in sMLH
+summary(sMLH_chicks)
+het_var_chicks
+```
+
+```{r smlh model, warning=F, echo=F, message=F}
+# Loaded in clean version of sMLH and split by sex/age class
+load(file = "data/cleandata/sMLH.all.RData")
+
+# first divide up again in female adults, male adults and chicks
+sMLH.males <- subset(sMLH.all, sex == "m" & age == "adult")
+sMLH.females <- subset(sMLH.all, sex == "f" & age == "adult")
+sMLH.chicks <- subset(sMLH.all, age == "chick")
+sMLH.adults <- subset(sMLH.all, age != "chick")
+
+## Look at distribution sMLH ##
+
+ggplot(sMLH.males, aes(x=sMLH)) + geom_histogram() +theme_classic() +
+  labs(title = "Histogram of sMLH for adult males")
+
+ggplot(sMLH.females, aes(x=sMLH)) + geom_histogram() +theme_classic() +
+  labs(title = "Histogram of sMLH for adult females")
+
+ggplot(sMLH.chicks, aes(x=sMLH)) + geom_histogram() +theme_classic() +
+  labs(title = "Histogram of sMLH for chicks")
+
+# not perfectly normal, but good enough. also tried the below models with 
+# both a poisson and gamma distribution, which had a bad fit
+
+### Setup models ####
+
+#male model
+sMLH.model.males.lmer <- lmerTest::lmer(sMLH ~ hunt + pop*year + hunt*year + 
+                                          (1|pop)+ (1|year) , data = sMLH.males)
+
+#failed to converge
+#Rescale and center continuous parameters
+numcols <- grep("^c\\.",names(sMLH.males))
+sMLH.males_rescale <- sMLH.males
+sMLH.males_rescale[,numcols] <- scale(sMLH.males_rescale[,numcols])
+sMLH.model.males.lmer_rescale <- update(sMLH.model.males.lmer,
+                                        data=sMLH.males_rescale)
+
+# restart and bump up max interations
+ss <- getME(sMLH.model.males.lmer_rescale,c("theta","fixef"))
+sMLH.model.males.lmer_noerror <- update(sMLH.model.males.lmer_rescale,
+                                        start=ss,
+                                        control=lmerControl(optCtrl=list(maxfun=2e4)))
+
+#fixed!
+head(coef(summary(sMLH.model.males.lmer_noerror)))
+VarCorr(sMLH.model.males.lmer_noerror)
+simulateResiduals(fittedModel = sMLH.model.males.lmer_noerror, plot = T)
+plot(sMLH.model.males.lmer_noerror)
+r.squaredGLMM(sMLH.model.males.lmer_noerror)
+icc(model = sMLH.model.males.lmer_noerror, by_group = TRUE)
+
+#females
+sMLH.model.females.lmer <- lmerTest::lmer(sMLH ~ hunt + pop*year + hunt*year+(1|pop)+ (1|year) , data = sMLH.females)
+head(coef(summary(sMLH.model.females.lmer)))
+VarCorr(sMLH.model.females.lmer)
+simulateResiduals(fittedModel = sMLH.model.females.lmer, plot = T)
+plot(sMLH.model.females.lmer)
+r.squaredGLMM(sMLH.model.females.lmer)
+icc(model = sMLH.model.females.lmer, by_group = TRUE)
+
+## chicks
+sMLH.model.chicks.lmer <- lmerTest::lmer(sMLH ~ hunt + pop*year + hunt*year+
+                                           (1|pop)+ (1|year) , data = sMLH.chicks)
+
+# model failed to converge, still fails when taking out pop*year or hunt*year
+
+#Rescale and center continuous parameters
+numcols <- grep("^c\\.",names(sMLH.chicks))
+sMLH.chicks_rescale <- sMLH.chicks
+sMLH.chicks_rescale[,numcols] <- scale(sMLH.chicks_rescale[,numcols])
+sMLH.model.chicks.lmer_rescale <- update(sMLH.model.chicks.lmer,
+                                         data=sMLH.chicks_rescale)
+
+# restart and bump up max interations
+ss <- getME(sMLH.model.chicks.lmer_rescale,c("theta","fixef"))
+sMLH.model.chicks.lmer_noerror <- update(sMLH.model.chicks.lmer_rescale,
+                                         start=ss,
+                                         control=lmerControl(optCtrl=list(maxfun=2e4)))
+
+# fixed
+head(coef(summary(sMLH.model.chicks.lmer_noerror)))
+VarCorr(sMLH.model.chicks.lmer_noerror)
+simulateResiduals(fittedModel = sMLH.model.chicks.lmer_noerror, plot = T)
+plot(sMLH.model.chicks.lmer_noerror)
+r.squaredGLMM(sMLH.model.chicks.lmer_noerror)
+icc(model = sMLH.model.chicks.lmer_noerror, by_group = TRUE)
+
+```
+
+# Migration models
+
+Next, we investigate patterns of dispersion and how these are affected
+by hunting. We used BA3 to calculate migration directions and rates,
+followed by building mixed models to estimate the effect of hunting on migration.
+
+```{r calculate migration, warning=F, message=F}
+
+# load in pop data
+pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+pops$pop_num <- as.factor(pops$pop_num)
+
+## load in Matrix distances between sites as calculated with GenAlEx ##
+distance <- read_excel("data/details/CalculateDistanceSitesGenAlEx.xlsx", 
+                       sheet = "MatrixForR")
+names(distance)[1] <- "Site_A"
+distance_long <- melt(distance)
+names(distance_long) <- c("Site_A", "Site_B", "Distance")
+distance_long <- subset(distance_long, distance_long$Site_A != distance_long$Site_B)
+
+# files were reformatted to fit BA3, see the script in the github directory
+# called 5.migrationmodels.R for more details
+
+#### Running BA3 ####
+
+## males
+#install BA3, run through command line/terminal
+#made a directory per run using the command:
+system("mkdir /data/migrationanalysis/BA3runs/males_run1") #repeat for run1-run5
+
+#5 runs with 5 different random seeds
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 
+       -b 1000000 -n 1000 -o males_run1.txt 
+       /data/migrationanalysis/data_males_ba3.txt") 
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 
+       -b 1000000 -n 1000 -o males_run2.txt 
+       /data/migrationanalysis/data_males_ba3.txt")
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 
+       -b 1000000 -n 1000 -o males_run3.txt 
+       /data/migrationanalysis/data_males_ba3.txt") 
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 
+       -b 1000000 -n 1000 -o males_run4txt 
+       /data/migrationanalysis/data_males_ba3.txt") 
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 
+       -b 1000000 -n 1000 -o males_run5.txt 
+       /data/migrationanalysis/data_males_ba3.txt") 
+
+## females
+
+system("mkdir /data/migrationanalysis/BA3runs/females_run1") #repeat for run1-run5
+
+#5 runs with 5 different random seeds
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 
+       -b 1000000 -n 1000 -o females_run1.txt 
+       /data/migrationanalysis/data_females_ba3.txt") 
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 
+       -b 1000000 -n 1000 -o females_run2.txt 
+       /data/migrationanalysis/data_females_ba3.txt") 
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 
+       -b 1000000 -n 1000 -o females_run3.txt 
+       /data/migrationanalysis/data_females_ba3.txt") 
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 
+       -b 1000000 -n 1000 -o females_run4txt 
+       /data/migrationanalysis/data_females_ba3.txt") 
+
+system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 
+       -b 1000000 -n 1000 -o females_run5.txt 
+       /data/migrationanalysis/data_females_ba3.txt") 
+
+#### Compare all 10 runs ####
+temp <- list.files(path = "data/migrationanalysis/BA3runs/", pattern = ".txt", full.names=T)
+myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
+
+# formula for reshaping the dataframes
+
+reshape_ba3 <- function(m) {
+  m1 <- m[,c(1,2)]
+  names(m1) <- c("pops", "migration")
+  m2 <- m[,c(3,4)]
+  names(m2) <- c("pops", "migration")
+  m3 <- m[,c(5,6)]
+  names(m3) <- c("pops", "migration")
+  m4 <- m[,c(7,8)]
+  names(m4) <- c("pops", "migration")
+  m5 <- m[,c(9,10)]
+  names(m5) <- c("pops", "migration")
+  m6 <- m[,c(11,12)]
+  names(m6) <- c("pops", "migration")
+  m7 <- m[,c(13,14)]
+  names(m7) <- c("pops", "migration")
+  m8 <- m[,c(15,16)]
+  names(m8) <- c("pops", "migration")
+  m9 <- m[,c(17,18)]
+  names(m9) <- c("pops", "migration")
+  m10 <- m[,c(19,20)]
+  names(m10) <- c("pops", "migration")
+  m11 <- m[,c(21,22)]
+  names(m11) <- c("pops", "migration")
+  m12 <- m[,c(23,24)]
+  names(m12) <- c("pops", "migration")
+  mnew<-rbind(m1, m2, m3, m4, m5,m6,m7,m8,m9,m10,m11,m12)
+  # Note that m[i][j] is the fraction of individuals in population i that are migrants derived from population j per generation
+  # Pops:  0->1 9->10 10->11 11->12 1->2 2->3 3->4 4->5 5->6 6->7 7->8 8->9
+  mnew$m_in <- c(rep(c(1:12), times = 12, each = 1)) # rename populations into actual names and split into migration_in
+  mnew$m_out <- c(rep(c(1:12), times = 1, each = 12)) # rename populations into actual names and split into migration_out
+  mnew <- separate(data = mnew, col = "migration", into = c("migration", "migration_SE"), 
+                   sep = "[(]") #seperate migration and its SE
+  mnew$migration_SE <- gsub(mnew$migration_SE, pattern = "[)]", replacement = "") #take out parenthesis
+  mnew <- mnew[,c(4,5,2,3)]
+  return(mnew)
+}
+
+# run it for all files
+for (i in 1:length(myfiles)) {
+  myfiles[[i]]<-reshape_ba3(myfiles[[i]])
+}
+
+#separate for males and females
+maleruns <- myfiles[c(6:10)]
+femaleruns <- myfiles[c(1:5)]
+
+#separate per run to compare
+male_run1 <- maleruns[[1]]
+male_run2 <- maleruns[[2]]
+male_run3 <- maleruns[[3]]
+male_run4 <- maleruns[[4]]
+male_run5 <- maleruns[[5]]
+
+female_run1 <- femaleruns[[1]]
+female_run2 <- femaleruns[[2]]
+female_run3 <- femaleruns[[3]]
+female_run4 <- femaleruns[[4]]
+female_run5 <- femaleruns[[5]]
+
+#### Compare runs ####
+plot(male_run1$migration, male_run2$migration)
+#plot(male_run1$migration, male_run3$migration)
+# plot(male_run1$migration, male_run4$migration)
+# plot(male_run1$migration, male_run5$migration)
+# plot(male_run2$migration, male_run3$migration)
+# plot(male_run2$migration, male_run4$migration)
+# plot(male_run2$migration, male_run5$migration)
+# plot(male_run3$migration, male_run4$migration)
+# plot(male_run3$migration, male_run5$migration)
+plot(male_run4$migration, male_run5$migration)
+# all runs correspond
+
+plot(female_run1$migration, female_run2$migration)
+# plot(female_run1$migration, female_run3$migration)
+# plot(female_run1$migration, female_run4$migration)
+# plot(female_run1$migration, female_run5$migration)
+# plot(female_run2$migration, female_run3$migration)
+# plot(female_run2$migration, female_run4$migration)
+# plot(female_run2$migration, female_run5$migration)
+# plot(female_run3$migration, female_run4$migration)
+# plot(female_run3$migration, female_run5$migration)
+plot(female_run4$migration, female_run5$migration)
+
+# all runs correspond
+
+## Going to pick run 5 for both
+
+#### Load in cleaned migration files ####
+# again, see R script 5.migrationmodels.R for details on how to merge
+# raw BA3 files with ESS, how the migration values were corrected (set to NA
+# when ESS < 200), added hunted status, added distance between sites
+
+male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
+female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
+
+### Plotting migration rates from run 5 ####
+#first, exclude the 'non-migration rates' which are those where pop in = pop out
+male_run5_clean <- subset(male_run5_clean, m_in != m_out)
+female_run5_clean <- subset(female_run5_clean, m_in != m_out)
+
+#### Modelling migration ####
+
+names(female_run5_clean) == names(male_run5_clean)
+female_run5_clean$sex <- "Female"
+male_run5_clean$sex <- "Male"
+
+#change levels hunted/unhunted
+male_run5_clean$hunt_in <- relevel(as.factor(male_run5_clean$hunt_in), 
+                                   ref = "unhunted")
+male_run5_clean$hunt_out <- relevel(as.factor(male_run5_clean$hunt_out), 
+                                    ref = "unhunted")
+
+female_run5_clean$hunt_in <- relevel(as.factor(female_run5_clean$hunt_in), 
+                                     ref = "unhunted")
+female_run5_clean$hunt_out <- relevel(as.factor(female_run5_clean$hunt_out), 
+                                      ref = "unhunted")
+
+#combine in one df
+migration_both <- rbind(male_run5_clean, female_run5_clean)
+
+#out
+model.both.out <- glmer(migration_ESSc~ hunt_out + Distance + sex + 
+                          (1|pop_out) + (1|pop_in), 
+                          data = migration_both, 
+                          family = Gamma(link = "log"))
+
+model.both.out.TMB <- glmmTMB(migration_ESSc~ hunt_out + Distance + sex + 
+                                (1|pop_out) + (1|pop_in), 
+                          data = migration_both, 
+                          family = Gamma(link = "log"))
+
+model.both.out.TMB.inter <- glmmTMB(migration_ESSc~ hunt_out + Distance*sex + 
+                                      (1|pop_out) + (1|pop_in), 
+                          data = migration_both, 
+                          family = Gamma(link = "log"))
+
+compare_performance(model.both.out, model.both.out.TMB, 
+                    model.both.out.TMB.inter, rank=T)
+
+# TMB with interaction has a higher performance score
+summary(model.both.out.TMB.inter) 
+simulateResiduals(fittedModel = model.both.out.TMB.inter, plot = T)
+
+#immigration model
+model.both.in <- lme4::glmer(migration_ESSc~ hunt_in + Distance + sex + 
+                           (1|pop_out) + (1|pop_in), 
+                         data = migration_both, 
+                         family = Gamma(link = "log"))
+
+
+model.both.in.TMB <- glmmTMB(migration_ESSc~ hunt_in + Distance + sex + 
+                               (1|pop_out) + (1|pop_in), 
+                         data = migration_both, 
+                         family = Gamma(link = "log"))
+
+model.both.in.TMB.inter <- glmmTMB(migration_ESSc~ hunt_in + Distance*sex + 
+                                     (1|pop_out) + (1|pop_in), 
+                         data = migration_both, 
+                         family = Gamma(link = "log"))
+
+compare_performance(model.both.in, model.both.in.TMB,
+                    model.both.in.TMB.inter, rank=T)
+
+#TMB and lmer model perform the same, but TMB captures more variation,
+#just keep TMB for consistency with emigration model
+
+summary(model.both.in.TMB.inter) 
+simulateResiduals(fittedModel = model.both.in.TMB.inter, plot = T)
+
+## model performance
+icc(model = model.both.out, by_group = TRUE)
+icc(model = model.both.out.TMB, by_group = TRUE)
+icc(model = model.both.out.TMB.inter, by_group = TRUE)
+
+icc(model = model.both.in, by_group = TRUE)
+icc(model = model.both.in.TMB, by_group = TRUE)
+icc(model = model.both.in.TMB.inter, by_group = TRUE)
+
+r.squaredGLMM(model.both.out)
+r.squaredGLMM(model.both.out.TMB)
+r.squaredGLMM(model.both.out.TMB.inter)
+
+r.squaredGLMM(model.both.in)
+r.squaredGLMM(model.both.in.TMB)
+r.squaredGLMM(model.both.in.TMB.inter)
+
+
+
 
 ```

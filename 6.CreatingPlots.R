@@ -14,15 +14,15 @@ theme_set(theme_classic())
 #### Figure 2: heatmaps pairwise Fst + correlograms spatial autocorrelation ####
 
 ### First: heatmap
-pairwise.fst.males <- read.csv("data/Pairwise_Fst_males.csv")
-pairwise.fst.females <- read.csv("data/Pairwise_Fst_females.csv")
-pairwise.fst.chicks <- read.csv("data/Pairwise_Fst_chicks.csv")
+pairwise.fst.males <- read.csv("data/tables/Pairwise_Fst_males.csv")
+pairwise.fst.females <- read.csv("data/tables/Pairwise_Fst_females.csv")
+pairwise.fst.chicks <- read.csv("data/tables/Pairwise_Fst_chicks.csv")
 
 #change the negative values to 0 in females
 pairwise.fst.females$Fst[which (pairwise.fst.females$Fst < 0)] <- 0
 
-# add abbreviation to chick data
-sitenames <- read.csv("data/Codes.pops.both.filtered_withcoord.csv")
+# add abbreviation to data
+sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
 # add abbreviations to sitenames
 sitenames[1]
 sitenames$abb <- c("KOS", "KUM", "LAU", "LEH", "NYR", "PAL", "PIH", "PIL", "PIS", "SAA", "TEE", "UTU")
@@ -97,7 +97,7 @@ chicks.fst <- ggplot(pairwise.fst.chicks, aes(abb.x, abb.y, fill = Fst)) + geom_
   ggtitle("(c) Chicks ")
 
 ### Second - correlograms ###
-spatial <- read_excel("data/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
+spatial <- read_excel("data/tables/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
 
 
 ### Males - spatial
@@ -150,8 +150,8 @@ spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) +
         axis.title.y = element_text(size = 30)) 
 
 ### Figure 3: boxplots migration rates ####
-male_run5_clean <- read.csv("data/run5_males_clean.csv")
-female_run5_clean <- read.csv("data/run5_females_clean.csv")
+male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
+female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
 
 names(female_run5_clean) == names(male_run5_clean)
 female_run5_clean$sex <- "Female"
@@ -203,17 +203,17 @@ immmigration.plot <- ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc,
   guides(fill = guide_legend("Sex"))
 
 
-ggsave(plot = emigration.plot, "data/Emigration.png",
+ggsave(plot = emigration.plot, "data/figures/Emigration.png",
        width = 30, height = 20, units = c("cm"))
 
-ggsave(plot = immmigration.plot, "data/Immigration.png",
+ggsave(plot = immmigration.plot, "data/figures/Immigration.png",
        width = 30, height = 20, units = c("cm"))
 
 #### Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
 
-load("data/ks_ad_fem.R")
-load("data/ks_chick_2.R")
-load("data/ks_ad_male.R")
+load("data/structure/ks_ad_fem.R")
+load("data/structure/ks_chick_2.R")
+load("data/structure/ks_ad_male.R")
 
 #### plotting K vs mean log likelihood
 
@@ -266,7 +266,7 @@ ks_chick <- ggplot(ks_chick, aes(x = k, y = elpdmean)) +
   labs(title = "(c)")
 
 library(cowplot); library(gridExtra)
-png("data/K_all.png", 
+png("data/figures/K_all.png", 
     width = 1000, height = 700, units = "px")
 grid.arrange(ks_male, ks_fem, ks_chick)
 dev.off()
@@ -276,8 +276,8 @@ dev.off()
 ##### First plot the bargraphs for 10 different K's an example of 10 different runs
 
 ## males 
-males_path_to_structure_out <- "data/Results_stru/males/Run_files/"
-males_path_to_struc_file <- "data/Microsat.males.noLOCUS1+13.forstructure.stru"
+males_path_to_structure_out <- "data/structure/Results_stru_males/Run_files/"
+males_path_to_struc_file <- "data/cleandata/Microsat.males.noLOCUS1+13.forstructure.stru"
 males_all_files <- list.files(males_path_to_structure_out, pattern = "^results")
 males_struc_out_paths <- paste0(males_path_to_structure_out, males_all_files)
 males_slist <- readQ(files=males_struc_out_paths, filetype = "structure")
@@ -327,8 +327,8 @@ plotQ(qlist=(males_slist)[c(601)],imgoutput = "sep", grplab=males_pops,ordergrp 
 
 
 ## females 
-females_path_to_structure_out <- "data/Results_stru_females/Run_files/"
-females_path_to_struc_file <- "data/Microsat.females.noLOCUS1+13.forstructure.stru"
+females_path_to_structure_out <- "data/structure/Results_stru_females/Run_files/"
+females_path_to_struc_file <- "data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru"
 females_all_files <- list.files(females_path_to_structure_out, pattern = "^results")
 females_struc_out_paths <- paste0(females_path_to_structure_out, females_all_files)
 females_slist <- readQ(files=females_struc_out_paths, filetype = "structure")
@@ -351,7 +351,7 @@ females_pops <- data.frame(females_pops[seq(1, nrow(females_pops), 2)])
 colnames(females_pops) <- "location"
 females_pops$location <- as.character(females_pops$location)
 
-#system("mkdir /data/home/rchen/Hunting/Final_analysis/Results_females_11.1/Run_files/Plots/")
+#system("mkdir /data/structure/Results_stru_females/Run_files/Plots/")
 #highest delta k = 2 (run 401)
 plotQ(qlist=(females_slist)[c(401)], splab="", imgoutput = "sep", grplab=females_pops,ordergrp = TRUE,
       clustercol=c("#BE4D5A", "#8B95C9"), 
@@ -374,8 +374,8 @@ plotQ(qlist=(females_slist)[c(401)], splab="", imgoutput = "sep", grplab=females
 
 #### chicks
 
-chicks_path_to_structure_out <- "data/Results_stru_chicks/Run_files/"
-chicks_path_to_struc_file <- "data/Microsat.chicks.noLOCUS1+13+14.forstructure.stru"
+chicks_path_to_structure_out <- "data/structure/Results_stru_chicks/Run_files/"
+chicks_path_to_struc_file <- "data/cleandata/Microsat.chicks.noLOCUS1+13+14.forstructure.stru"
 chicks_all_files <- list.files(chicks_path_to_structure_out, pattern = "^results")
 chicks_struc_out_paths <- paste0(chicks_path_to_structure_out, chicks_all_files)
 chicks_slist <- readQ(files=chicks_struc_out_paths, filetype = "structure", indlabfromfile=T)
