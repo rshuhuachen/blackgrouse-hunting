@@ -42,6 +42,15 @@ write.csv(females.unhunted.df, "data/NeEstimator//NeEstimator.females.unhunted.t
 
 #### NeEstimator #####
 
+#males all
+gpfile_maleshunted <- write_genepop_zlr(loci = males.df[,5:ncol(males.df)], pops=males.df$pop,
+                                        ind.ids = males.df$id, folder = "", filename="genepop_output_malesall.txt",
+                                        missingVal = NA, diploid = T, ncode =2)
+gpfile_femaleshunted <- write_genepop_zlr(loci = females.df[,5:ncol(females.df)], pops=females.df$pop,
+                                        ind.ids = females.df$id, folder = "", filename="genepop_output_femalesall.txt",
+                                        missingVal = NA, diploid = T, ncode =2)
+
+
 #males hunted
 setwd("data/NeEstimator/")
 

@@ -5,8 +5,8 @@
 ### load packages ###
 
 library(RColorBrewer); library(ggplot2); library(extrafont); 
-library(dplyr)
-library(devtools); library(readxl); library(devtools); library(pophelper); library(gridExtra); library(adegenet)
+library(dplyr); library(readxl); library(devtools); library(pophelper)
+library(gridExtra); library(adegenet)
 
 #palette
 mypalette3 <- c("#EDEDFD","#C2C1EC","#9795DB","#6C69C9","#413DB8","#1611A7") #purples from structure

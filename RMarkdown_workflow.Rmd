@@ -1,0 +1,107 @@
+---
+title: "R-code for 'Effects of hunting on black grouse inbreeding and dispersal'"
+author: "compiled by Rebecca Shuhua Chen"
+date: "03/05/2022"
+output: 
+  pdf_document:
+    toc: true
+    theme: united 
+    toc_depth: 2
+---
+---
+
+This document contains all R-code used in the workflow for the manuscript *"Sex-specific fine-scale population structure and effects of hunting on inbreeding and dispersal in Finnish black grouse (Lyrurus tetrix)"* by Rebecca Shuhua Chen, Carl Soulsbury, Christophe Lebigre, Kees van Oers and Joseph Hoffman (in prep). The raw data can be found on Zenodo as well as in the public GitHub repository together with full R scripts and processed datafiles. Please contact me at rebecca.chen@uni-bielefeld.de for any questions.
+
+Within this markdown file, we follow the same order of analyses as described in the Materials and Methods. However, not all analyses are executed through R, and other softwares were used in combination with our workflow in R to collect all results as presented in the manuscript.
+
+---
+
+# Libraries
+The following packages were used in the analyses:
+
+```{r libraries, echo = FALSE, error=FALSE, warning=FALSE}
+library(tidyverse);library(adegenet); library(pegas)
+library(data.table);library(hierfstat); library(plot.matrix); library(lme4)
+library(forcats); library(ape); library(ParallelStructure)
+library(pophelper); library(inbreedR); library(lmerTest); library(DHARMa)
+library(performance);library(MuMIn); library(readxl); library(glmmTMB)
+library(RColorBrewer); library(extrafont); library(devtools);library(gridExtra)
+```
+
+# Data
+
+## Adults
+Raw datasheets are can be downloaded in STRUCTURE format and will be read into 
+R using adegenet.
+
+```{r data, echo=FALSE}
+adults <- read.structure("data/rawdata/Microsat.adults.forstructure.stru", 
+                         n.ind = 1878, n.loc = 14, onerowperind = F,
+                         col.lab = 1, col.pop = 2, col.others = NULL,
+                         row.marknames = 0, NA.char = "-9", pop = NULL, 
+                         sep = NULL,ask = F, quiet = FALSE) 
+
+summary(adults)
+```
+## Chicks
+```{r datachicks, echo = FALSE}
+chicks <- read.structure("data/rawdata/Microsat.chicks.forstructure.stru", n.ind = 1370, n.loc = 12, onerowperind = F,
+                         col.lab = 1, col.pop = 2, col.others = NULL,
+                         row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
+                         ask = F, quiet = FALSE) #just need this for HWE
+
+summary(chicks)
+```
+
+# Test for Hardy-Weinberg equilibrium
+
+We tested for Hardy-Weinberg only in the adult data, as the chick data
+contains closely related individuals sampled from the same broods.
+
+```{r hardyweinberg, echo = FALSE, warning = FALSE}
+
+#### Testing for Hardy-Weinberg equilibrium ####
+
+# First all together
+adultHWE.all <- pegas::hw.test(adults, B = 1000) 
+#B = 1000 for 1000 Monte Carlo permutations 
+summary(adultHWE.all )
+
+# Then per population using a for loop
+adultpop <- seppop(adults)
+# Run loop
+adultHWE = NULL
+for(i in 1:length(adultpop)) {
+  hwt <- pegas::hw.test(adultpop[[i]], B=1000)
+  smry <- summary(adultpop[[i]])
+  
+  Hobs <- smry[[6]]
+  Hexp <- smry[[7]]
+  pexact <- hwt[,4] #hw.test does chi2 test and exact test. 
+  #We use p-values of exact test which are given in 4th col
+  qval.FDR <- p.adjust(pexact, method = "fdr")
+  qval.bon <- p.adjust(pexact, method = "bonferroni")
+  adultHWE <- as.data.frame(cbind(adultHWE, Hobs, Hexp, pexact, qval.FDR, qval.bon))
+  
+}
+
+sites<-rep(names(adultpop[1:length(adultpop)]),each=5)
+adultHWE <- rbind(adultHWE, sites)
+adultHWE <- adultHWE[c(nrow(adultHWE),1:(nrow(adultHWE)-1)),]
+rownames(adultHWE)[1] <- "Site"
+
+adultHWE.t <- as.data.frame(t(adultHWE))
+nums <- c(2:15)
+adultHWE.t[nums] <- lapply(adultHWE.t[nums], as.numeric)
+
+adultHWE.t[,c(2:15)]<- round(adultHWE.t[,c(2:15)], 2)
+head(adultHWE.t)
+
+# this table now includes Hobs, Hexp, pexact, qval.FDR and qval.bon
+# for each locus (columns) for each site
+# the full output of the table can be found in Supplementary Table 3
+
+# subsequently, we exclude locus 1, and 13 as FDR-corrected q-values indicate 
+# violation of assumption of HWE in over 70% of the sites
+
+```

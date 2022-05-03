@@ -10,9 +10,7 @@
 library(dplyr);library(tibble)
 library(adegenet); library(pegas); library(data.table)
 
-setwd("/Volumes/rchen2/Black Grouse PhD/Projects/Hunting_Microsats/Clean+final_analysis/ScriptsHuntingFinal/GithubDirectory") #set to directory of github repository
-
-adults <- read.structure("data//Microsat.adults.forstructure.stru", n.ind = 1914, n.loc = 14, onerowperind = F,
+adults <- read.structure("data//Microsat.adults.forstructure.stru", n.ind = 1878, n.loc = 14, onerowperind = F,
                          col.lab = 1, col.pop = 2, col.others = NULL,
                          row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                          ask = F, quiet = FALSE) #just need this for HWE
