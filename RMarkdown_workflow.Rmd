@@ -5,7 +5,6 @@ date: "03/05/2022"
 output: 
   pdf_document:
     toc: true
-    theme: united 
     toc_depth: 2
 ---
 ---
@@ -275,8 +274,6 @@ pairwise.fst.males <- pairwise.fst.males %>% mutate(Significance = case_when(
   UL > 0 & LL < 0 ~ "insignificant",
   UL < 0 & LL < 0 ~ "significant" ))
 
-#write.csv(pairwise.fst.males, "data/tables/Pariwise_Fst_males.csv", quote=F,row.names=F)
-
 ```
 ```{r plot fst males, echo=F, warning=F, message=F}
 
@@ -368,7 +365,6 @@ pairwise.fst.females <- pairwise.fst.females %>% mutate(Significance = case_when
   UL > 0 & LL < 0 ~ "insignificant",
   UL < 0 & LL < 0 ~ "significant" ))
 
-#write.csv(pairwise.fst.females, "data/tables/Pariwise_Fst_females.csv", quote=F,row.names=F)
 ```
 ```{r plot females, warning=F, echo=F, message=F}
 
@@ -441,8 +437,6 @@ pairwise.fst.chicks <- pairwise.fst.chicks %>% mutate(Significance = case_when(
   UL > 0 & LL < 0 ~ "insignificant",
   UL < 0 & LL < 0 ~ "significant" ))
 
-#write.csv(pairwise.fst.chicks, "data/tables/Pariwise_Fst_chicks.csv", quote=F,row.names=F)
-
 ```
 ```{r plot chicks, warning=F, message=F, echo=F}
 ### Chicks - Pairwise FST
@@ -475,7 +469,7 @@ found in the full script within the GitHub directory called
 
 Ensure you have enough computational power to conduct this analysis.
 
-```{r structure, warning=FALSE, message=FALSE}
+```{r structure, warning=FALSE, message=FALSE, eval=FALSE}
 
 
 ##### Running structure for males #####
@@ -654,14 +648,14 @@ Next, to understand the effects of hunting on inbreeding, we built a
 mixed-model and investigated the fit of the models using various packages.
 
 ```{r setup smlh, echo=F, warning=F, message=F}
-sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv") #information for each site
+sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
 sitenames[1,1] <- "Koskenpää"
 sitenames[5,1] <- "Nyrölä"
 
 #Load in filtered data
-males.inb <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv") #different format than structure files
+males.inb <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv") 
 males.inb <- as.data.frame(males.inb)
-males.inb <- left_join(males.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num")) #join to have full pop names
+males.inb <- left_join(males.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num")) 
 males.inb <- males.inb[,c(1,27,3:26)] #reorganise
 names(males.inb)[2] <- "pop"
 
@@ -677,7 +671,7 @@ chicks.inb <- chicks.inb[,c(1,25,3:24)]
 names(chicks.inb)[2] <- "pop"
 ```
 ```{r smlh, warning=F, message=F}
-## Change formats to be loaded into inbreedR (binary where rownames are id's and no populations)
+## Change formats to be loaded into inbreedR 
 males.inb <- males.inb %>% remove_rownames %>% column_to_rownames(var="id")
 males.inb <- males.inb[,-1]
 
@@ -806,7 +800,7 @@ Next, we investigate patterns of dispersion and how these are affected
 by hunting. We used BA3 to calculate migration directions and rates,
 followed by building mixed models to estimate the effect of hunting on migration.
 
-```{r calculate migration, warning=F, message=F}
+```{r calculate migration, warning=F, message=F,eval=FALSE}
 
 # load in pop data
 pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
@@ -875,9 +869,11 @@ system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000
 system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 
        -b 1000000 -n 1000 -o females_run5.txt 
        /data/migrationanalysis/data_females_ba3.txt") 
-
+```
+```{r migration,message=F, warning=F}
 #### Compare all 10 runs ####
-temp <- list.files(path = "data/migrationanalysis/BA3runs/", pattern = ".txt", full.names=T)
+temp <- list.files(path = "data/migrationanalysis/BA3runs/", 
+                   pattern = ".txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
 
 # formula for reshaping the dataframes
@@ -908,13 +904,11 @@ reshape_ba3 <- function(m) {
   m12 <- m[,c(23,24)]
   names(m12) <- c("pops", "migration")
   mnew<-rbind(m1, m2, m3, m4, m5,m6,m7,m8,m9,m10,m11,m12)
-  # Note that m[i][j] is the fraction of individuals in population i that are migrants derived from population j per generation
-  # Pops:  0->1 9->10 10->11 11->12 1->2 2->3 3->4 4->5 5->6 6->7 7->8 8->9
-  mnew$m_in <- c(rep(c(1:12), times = 12, each = 1)) # rename populations into actual names and split into migration_in
-  mnew$m_out <- c(rep(c(1:12), times = 1, each = 12)) # rename populations into actual names and split into migration_out
+  mnew$m_in <- c(rep(c(1:12), times = 12, each = 1)) 
+  mnew$m_out <- c(rep(c(1:12), times = 1, each = 12)) 
   mnew <- separate(data = mnew, col = "migration", into = c("migration", "migration_SE"), 
                    sep = "[(]") #seperate migration and its SE
-  mnew$migration_SE <- gsub(mnew$migration_SE, pattern = "[)]", replacement = "") #take out parenthesis
+  mnew$migration_SE <- gsub(mnew$migration_SE, pattern = "[)]", replacement = "") 
   mnew <- mnew[,c(4,5,2,3)]
   return(mnew)
 }
@@ -1068,7 +1062,125 @@ r.squaredGLMM(model.both.in)
 r.squaredGLMM(model.both.in.TMB)
 r.squaredGLMM(model.both.in.TMB.inter)
 
-
-
-
 ```
+#Other plots included in the manuscript
+
+Figure 1 was created with qGIS, for barcharts of STRUCTURE output as in 
+Supplementary Figure 2, please refer to R script 6.CreatingPlots.R
+
+```{r plots, warning=F, message=F}
+
+### Figure 2 - correlograms ###
+spatial <- read_excel("data/tables/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
+
+### Males - spatial
+spatial %>% filter(Who == "Male") %>% ggplot(aes(x = What)) + 
+  geom_line(aes(y = r), col = "#8989D0", size = 1.5) + theme_classic() + 
+  geom_hline(yintercept = 0, col = "black")+
+  geom_ribbon(aes(ymax = U, ymin = L), fill = "#8989D0", alpha = 0.5)+
+  geom_errorbar(aes(y = r, ymin = r-Le, ymax = r+Ue), width=1, 
+                size=1.5, color="black", stat = "identity")+
+  ylim(-0.03, 0.035) +
+  xlab("Distance class") + ylab("Autocorrelation coefficient r")+
+  scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
+  theme(text = element_text(family = "Arial", size = 14),
+        plot.title = element_text(size = 38),
+        axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
+        axis.text.y = element_text(size = 26, margin = margin(l = 10)),
+        axis.title.x = element_text(size = 30), 
+        axis.title.y = element_text(size = 30)) 
+
+### Females - spatial
+
+spatial %>% filter(Who == "Females") %>% ggplot(aes(x = What)) + 
+  geom_line(aes(y = r), col = "#8989D0", size = 1.5) + theme_classic() + 
+  geom_hline(yintercept = 0, col = "black")+
+  geom_ribbon(aes(ymax = U, ymin = L), fill = "#8989D0", alpha = 0.5)+
+  geom_errorbar(aes(y = r, ymin = r-Le, ymax = r+Ue), width=1, size=1.5, 
+                color="black", stat = "identity")+
+  ylim(-0.03, 0.035) +
+  xlab("Distance class") + ylab("Autocorrelation coefficient r")+
+  scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
+  theme(text = element_text(family = "Helvetica", size = 14),
+        plot.title = element_text(size = 38),
+        axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
+        axis.text.y = element_text(size = 26, margin = margin(l = 10)),
+        axis.title.x = element_text(size = 30), 
+        axis.title.y = element_text(size = 30))
+
+
+### Chicks - spatial
+spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) + 
+  geom_line(aes(y = r), col = "#8989D0", size = 1.5) + theme_classic() + 
+  geom_hline(yintercept = 0, col = "black")+
+  geom_ribbon(aes(ymax = U, ymin = L), fill = "#8989D0", alpha = 0.5)+
+  geom_errorbar(aes(y = r, ymin = r-Le, ymax = r+Ue), width=1, size=1.5, 
+                color="black", stat = "identity")+
+  ylim(-0.03, 0.035) +
+  xlab("Distance class") + ylab("Autocorrelation coefficient r")+
+  scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
+  theme(text = element_text(family = "Arial", size = 14),
+        plot.title = element_text(size = 38),
+        axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
+        axis.text.y = element_text(size = 26, margin = margin(l = 10)),
+        axis.title.x = element_text(size = 30), 
+        axis.title.y = element_text(size = 30)) 
+
+### Figure 3: boxplots migration rates ####
+male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
+female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
+
+names(female_run5_clean) == names(male_run5_clean)
+female_run5_clean$sex <- "Female"
+male_run5_clean$sex <- "Male"
+
+#combine in one df
+migration_both <- rbind(male_run5_clean, female_run5_clean)
+
+#change levels
+migration_both$hunt_in <- relevel(as.factor(migration_both$hunt_in), 
+                                  ref = "unhunted")
+migration_both$hunt_out <- relevel(as.factor(migration_both$hunt_out), 
+                                   ref = "unhunted")
+
+#first, exclude the 'non-migration rates' which are those where pop in = pop out
+migration_both <- subset(migration_both, m_in != m_out)
+
+# plot emigration rates 
+ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) + 
+  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + 
+  ylim(0, 0.03)+
+  labs(title = "(a) Emigration rates") + 
+  ylab("Migration rate")+
+  theme(text = element_text(family = "Arial", size = 26),
+        legend.text = element_text(size = 28),
+        legend.title = element_text(size = 28),
+        legend.key.size = unit(1, 'cm'),
+        plot.title = element_text(size = 38),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(margin = margin
+                                    (t = 0, r = 20, b = 0, l = 0)))+
+  scale_fill_manual(values = c("Male" = "#57939a",
+                               "Female" = "#be4d5a"),
+                    labels=c("Male", "Female"))+
+  guides(fill = guide_legend("Sex")) 
+
+#plot immigration rates
+
+ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) + 
+  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + 
+  ylim(0, 0.03)+
+  labs(title = "(b) Immigration rates") + 
+  ylab("Migration rate")+
+  theme(text = element_text(family = "Arial", size = 26),
+        legend.text = element_text(size = 28),
+        legend.title = element_text(size = 28),
+        legend.key.size = unit(1, 'cm'),
+        plot.title = element_text(size = 38),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(margin = margin
+                                    (t = 0, r = 20, b = 0, l = 0)))+
+  scale_fill_manual(values = c("Male" = "#57939a",
+                               "Female" = "#be4d5a"),
+                    labels=c("Male", "Female"))+
+  guides(fill = guide_legend("Sex"))

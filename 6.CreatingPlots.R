@@ -271,7 +271,7 @@ png("data/figures/K_all.png",
 grid.arrange(ks_male, ks_fem, ks_chick)
 dev.off()
 
-##### Supplementary Figures 2 and 3: barplots STRUCTURE #####
+##### Supplementary Figure 2: barplots STRUCTURE #####
 
 ##### First plot the bargraphs for 10 different K's an example of 10 different runs
 
