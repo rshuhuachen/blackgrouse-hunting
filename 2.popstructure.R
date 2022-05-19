@@ -23,11 +23,12 @@ chicks.stru <- read.structure("data/cleandata/Microsat.chicks.noLOCUS1+13+14.for
                               row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                               ask = F, quiet = FALSE)
 
-all <- read.structure ("data/cleandata/Microsat.all.stru", n.ind = 3248, n.loc = 14, onerowperind = F,
+all <- read.structure ("data/rawdata/Microsat.all.stru", n.ind = 3248, n.loc = 14, onerowperind = F,
                        col.lab = 1, col.pop = 2, col.others = NULL,
                        row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                        ask = F, quiet = FALSE)
 
+pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
 #### Summary statistics ####
 
 # This is based on all individuals and all loci
@@ -52,6 +53,61 @@ for (i in 1:length(summary.by.pop)){
   Hexp.ls[i] = mean(summary.by.pop[[i]]$Hexp, na.rm=TRUE) 
 } 
 Hexp.ls
+
+#### Compare genetic measures between hunted vs unhunted
+pops$pop_num <- as.character(pops$pop_num)
+measures <- data.frame(pop = names(summary.by.pop), Hobs = Hobs.ls, Hexp = Hexp.ls, Ar = colMeans(allelic.richness.all.df, na.rm = T))
+measures <- left_join(measures, pops[,c(2,3)], by = c("pop" = "pop_num"))
+
+t.test(measures$Hobs[which(measures$hunt == "hunted")], measures$Hobs[which(measures$hunt == "unhunted")])
+t.test(measures$Hexp[which(measures$hunt == "hunted")], measures$Hexp[which(measures$hunt == "unhunted")])
+t.test(measures$Ar[which(measures$hunt == "hunted")], measures$Ar[which(measures$hunt == "unhunted")])
+
+# let's also do it including all data per locus, and model with locus as random factor
+Hobs.all <- NULL
+
+for (i in 1:length(summary.by.pop)){
+  Hobs.i <- data.frame(locus= c(names(summary.by.pop[[i]]$Hobs)),
+                       pop = names(summary.by.pop[i]),
+                       Hobs = c(summary.by.pop[[i]]$Hobs))
+  Hobs.all <- rbind(Hobs.all, Hobs.i)
+  rownames(Hobs.all) <- NULL
+}
+
+Hexp.all <- NULL
+
+for (i in 1:length(summary.by.pop)){
+  Hexp.i <- data.frame(locus= c(names(summary.by.pop[[i]]$Hexp)),
+                       pop = names(summary.by.pop[i]),
+                       Hexp = c(summary.by.pop[[i]]$Hexp))
+  Hexp.all <- rbind(Hexp.all, Hexp.i)
+  rownames(Hexp.all) <- NULL
+}
+
+Ar.all <- NULL
+
+for (i in 1:ncol(allelic.richness.all.df)){
+  Ar.i <- data.frame(locus= c(rownames(allelic.richness.all.df[i])),
+                       pop = colnames(allelic.richness.all.df[i]),
+                       Ar = c(allelic.richness.all.df[,i]))
+  Ar.all <- rbind(Ar.all, Ar.i)
+  rownames(Ar.all) <- NULL
+}
+
+measures.all <- left_join(Hobs.all, Hexp.all) %>% left_join(Ar.all) %>% left_join(pops[,c(2,3)], by = c("pop" = "pop_num"))
+
+measures.all
+measures.all$locus <- as.factor(measures.all$locus)
+measures.all$pop <- as.factor(measures.all$pop)
+measures.all$hunt <- as.factor(measures.all$hunt)
+
+Ho_model <- lmerTest::lmer(Hobs ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13")) # excluding BG20
+He_model <- lmerTest::lmer(Hexp ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+Ar_model <- lmerTest::lmer(Ar ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+
+anova(Ho_model)
+anova(He_model)
+anova(Ar_model)
 
 #### PCA ####
 

@@ -12,6 +12,10 @@ sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv") #in
 sitenames[1,1] <- "Koskenpää"
 sitenames[5,1] <- "Nyrölä"
 
+#density
+dens <- read.csv("data/")
+
+
 #Load in filtered data
 males <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv") #different format than structure files
 males <- as.data.frame(males)
