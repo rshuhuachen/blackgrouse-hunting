@@ -53,23 +53,23 @@ unr.chicks.unhunted.stru <- subset(unr.chicks.stru, V2 %in% unhunted.pops$pop_nu
 # write out files
 write.csv(males.hunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.males.hunted.noLOCUS1+13.csv",row.names=F, quote =F)
 write.csv(males.unhunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.males.unhunted.noLOCUS1+13.csv",row.names=F, quote =F)
-write.table(males.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.males.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
-write.table(males.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.males.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
+write.table(males.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.males.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
+write.table(males.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.males.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
 
 write.csv(females.hunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.females.hunted.noLOCUS1+13.csv",row.names=F, quote =F)
 write.csv(females.unhunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.females.unhunted.noLOCUS1+13.csv",row.names=F, quote =F)
-write.table(females.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.females.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
-write.table(females.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.females.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
+write.table(females.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.females.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
+write.table(females.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.females.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
 
 write.csv(chicks.hunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.chicks.hunted.noLOCUS1+13.csv",row.names=F, quote =F)
 write.csv(chicks.unhunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.chicks.unhunted.noLOCUS1+13.csv",row.names=F, quote =F)
-write.table(chicks.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.chicks.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
-write.table(chicks.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.chicks.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
+write.table(chicks.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.chicks.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
+write.table(chicks.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.chicks.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
 
 write.csv(unr.chicks.hunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.unrelated.chicks.hunted.noLOCUS1+13.csv",row.names=F, quote =F)
 write.csv(unr.chicks.unhunted, "data/cleandata/SplitHuntedUnhunted/Unsplit.microsat.unrelated.chicks.unhunted.noLOCUS1+13.csv",row.names=F, quote =F)
-write.table(unr.chicks.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.unrelated.chicks.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
-write.table(unr.chicks.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.unrelated.chicks.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ")
+write.table(unr.chicks.hunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.unrelated.chicks.hunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
+write.table(unr.chicks.unhunted.stru, "data/cleandata/SplitHuntedUnhunted/Microsat.unrelated.chicks.unhunted.noLOCUS1+13.forstructure.stru",row.names=F, quote =F,sep = " ", col.names = F)
 
 ### Format for GenAlEx (add site names rather than num)
 

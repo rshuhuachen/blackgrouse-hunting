@@ -121,139 +121,36 @@ ParallelStructure::parallel_structure(structure_path=STR_path,
 # collect output
 
 #males
-system("mkdir data/structure/Results_stru_males/Run_files")
-system("mv data/structure/Results_stru_males/*_f data/structure/Results_stru_males/Run_files")
 
-system("mkdir data/structure/Results_stru_males/Run_files/evanno")
-system("mkdir data/structure/Results_stru_males/Run_files/outputclumpp")
-system("mkdir data/structure/Results_stru_males/Run_files/struct-plots")
-system("mkdir data/structure/Results_stru_males/Run_files/outputclumpp/collectedruns")
-system("chmod ugo+rwx data/structure/Results_stru_males/Run_files/outputclumpp")
+source("3c_STRUCTURE_functions.R")
 
-#females
-system("mkdir data/structure/Results_stru_females/Run_files")
-system("mv data/structure/Results_stru_females/*_f data/structure/Results_stru_females/Run_files")
-
-system("mkdir data/structure/Results_stru_females/Run_files/evanno")
-system("mkdir data/structure/Results_stru_females/Run_files/outputclumpp")
-system("mkdir data/structure/Results_stru_females/Run_files/struct-plots")
-system("mkdir data/structure/Results_stru_females/Run_files/outputclumpp/collectedruns")
-system("chmod ugo+rwx data/structure/Results_stru_females/Run_files/outputclumpp")
-
-#chicks
-system("mkdir data/structure/Results_stru_chicks/Run_files")
-system("mv data/structure/Results_stru_chicks/*_f data/structure/Results_stru_chicks/Run_files")
-
-system("mkdir data/structure/Results_stru_chicks/Run_files/evanno")
-system("mkdir data/structure/Results_stru_chicks/Run_files/outputclumpp")
-system("mkdir data/structure/Results_stru_chicks/Run_files/struct-plots")
-system("mkdir data/structure/Results_stru_chicks/Run_files/outputclumpp/collectedruns")
-system("chmod ugo+rwx data/structure/Results_stru_chicks/Run_files/outputclumpp")
-
-## Load files and collect clumpp output  ##
-setwd("data/structure/")
-
-## load with clumpp
-load_and_clumpp <- function(path_to_structure_out){
-  
-  all_files <- list.files(path_to_structure_out, pattern = "^results")
-  
-  # creates character vector containing path to relevant files
-  struc_out_paths <- paste0(path_to_structure_out, all_files)
-  
-  slist <- readQ(files=struc_out_paths, filetype = "structure")
-  
-  # export for CLUMPP later on
-  clumppExport(qlist=slist, exportpath= paste0(path_to_structure_out, "/outputclumpp"))# if CLUMPP takes to long set parammode to 3, otherwise leave out
-  # collect CLUMPP output
-  collectClumppOutput(filetype="merged", runsdir = paste0(path_to_structure_out, "/outputclumpp"),
-                      newdir = paste0(path_to_structure_out, "/outputclumpp/collectedruns")) # aligned
-  system("rm -r pop_K*")
-  
-  # move clump files to correct directory
-  system(paste0("mv ", path_to_structure_out, "/outputclumpp/pop_* ", path_to_structure_out))
-  
-}
+## males 
+make_directories("data/structure/Results_stru_males/")
 load_and_clumpp("data/structure/Results_stru_males/Run_files/")
+load_and_K("data/structure/Results_stru_males/Run_files/")
+ks_ad_male <- load_and_K("data/structure/Results_stru_males/Run_files/")
+save(ks_ad_male, file = "data/structure/ks_ad_male.R")
+optimal_k(ks_ad_male) 
+both_k(ks_ad_male) 
+
+## females 
+make_directories("data/structure/Results_stru_females/")
 load_and_clumpp("data/structure/Results_stru_females/Run_files/")
-load_and_clumpp("data/structure/Results_stru_chicks/Run_files/")
-
-
-#### Function to get K summary stats from run files ####
-
-load_and_K <- function(path_to_structure_out){
-  
-  all_files <- list.files(path_to_structure_out, pattern = "^results")
-  
-  # creates character vector containing path to relevant files
-  struc_out_paths <- paste0(path_to_structure_out, all_files)
-  
-  slist <- readQ(files=struc_out_paths, filetype = "structure")
-  
-  # Get summary stats
-  
-  em <- evannoMethodStructure(summariseQ(tabulateQ(slist)))
-  plot(em$deltaK)
-  
-  evannoMethodStructure(data=em, exportplot=T, writetable = T, exportpath = paste0(path_to_structure_out, "/outputclumpp"))
-  system(paste0("mv ", path_to_structure_out, "/outputclumpp/evannoMethodStructure* ", path_to_structure_out, "evanno/"))
-  
-  em <- em
-  
-}
-
 load_and_K("data/structure/Results_stru_females/Run_files/")
 ks_ad_fem <- load_and_K("data/structure/Results_stru_females/Run_files/")
 save(ks_ad_fem, file = "data/structure/ks_ad_fem.R")
-
-load_and_K_gen("data/structure/Results_stru_males/Run_files/")
-ks_ad_male <- load_and_K_gen("data/structure/Results_stru_males/Run_files/")
-save(ks_ad_male, file = "data/structure/ks_ad_male.R")
-
-load_and_K_gen("data/structure/Results_stru_chicks/Run_files/")
-ks_chick <- load_and_K_gen("data/structure/Results_stru_chicks/Run_files/")
-save(ks_chick, file = "data/structure/ks_chick.R")
+optimal_k(ks_ad_fem) 
+both_k(ks_ad_fem) 
 
 
-### Load in ks files ###
-load(file = "data/structure/ks_ad_fem.R")
-load(file = "data/structure/ks_ad_male.R")
-load(file = "data/structure/ks_chick.R")
-### optimal k ###
-
-optimal_k <- function(x) {
-  elpd <- which.max(x$elpdmean)
-  if (elpd == 1) {
-    return(1)
-  } else {
-    delta_k <- which.max(x$deltaK)
-    delta_k
-  }
-}
-
-optimal_k(ks_chick) #17
-optimal_k(ks_ad_fem) #1
-optimal_k(ks_ad_male) #11
-
-#### output best k's ####
-
-both_k <- function(x) {
-  elpd <- which.max(x$elpdmean)
-  deltaK <- which.max(x$deltaK)
-  ks <- c(lnk = x$k[elpd], deltak = x$k[deltaK])
-  # write outfile
-  #write.table(ks, paste0(path_to_structure_out, "Ks.txt"))
-  ks <- ks
-}
-
-deltak_chick <- both_k(ks_chick)
-deltak_chick #27, 17
-
-deltak_fem <- both_k(ks_ad_fem)
-deltak_fem #1, 2
-
-delta_male <- both_k(ks_ad_male)
-delta_male #9, 11
+## chicks 
+make_directories("data/structure/Results_stru_chicks/")
+load_and_clumpp("data/structure/Results_stru_chicks/Run_files/")
+load_and_K("data/structure/Results_stru_chicks/Run_files/")
+ks_ad_chicks <- load_and_K("data/structure/Results_stru_chicks/Run_files/")
+save(ks_ad_chicks, file = "data/structure/ks_ad_chick_2.R")
+optimal_k(ks_ad_chicks) #8
+both_k(ks_ad_chicks) #5, 8
 
 #### Plotting barcharts ####
 
