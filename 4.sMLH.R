@@ -12,10 +12,6 @@ sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv") #in
 sitenames[1,1] <- "Koskenpää"
 sitenames[5,1] <- "Nyrölä"
 
-#density
-dens <- read.csv("data/")
-
-
 #Load in filtered data
 males <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv") #different format than structure files
 males <- as.data.frame(males)
@@ -209,3 +205,87 @@ simulateResiduals(fittedModel = sMLH.model.chicks.lmer_noerror, plot = T)
 plot(sMLH.model.chicks.lmer_noerror)
 r.squaredGLMM(sMLH.model.chicks.lmer_noerror)
 icc(model = sMLH.model.chicks.lmer_noerror, by_group = TRUE)
+
+
+#### Modelling sMLH with density ####
+#load in density data
+dens <- read.csv("data/details/DensityLekYear.csv")
+dens$site[which(dens$site == "Koskenp\xe4\xe4")] <- "Koskenpää"
+dens$site[which(dens$site == "Nyr\xf6l\xe4")] <- "Nyrölä"
+dens$year <- as.factor(dens$year)
+
+sMLH.all.dens <- left_join(sMLH.all, dens[,c(1,2,4)], by = c("pop" = "site", "year" = "year"))
+
+#divide up again in female adults, male adults and chicks
+sMLH.males.dens <- subset(sMLH.all.dens, sex == "m" & age == "adult")
+sMLH.females.dens <- subset(sMLH.all.dens, sex == "f" & age == "adult")
+sMLH.chicks.dens <- subset(sMLH.all.dens, age == "chick")
+sMLH.adults.dens <- subset(sMLH.all.dens, age != "chick")
+
+## building models: male
+#male model
+sMLH.model.males.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.males.dens)
+coef(summary(sMLH.model.males.dens.lmer))
+VarCorr(sMLH.model.males.dens.lmer)
+simulateResiduals(fittedModel = sMLH.model.males.dens.lmer, plot = T)
+plot(sMLH.model.males.dens.lmer)
+r.squaredGLMM(sMLH.model.males.dens.lmer)
+icc(model = sMLH.model.males.dens.lmer, by_group = TRUE)
+
+compare_performance(sMLH.model.males.dens.lmer, sMLH.model.males.lmer_noerror, rank = T)
+
+#female model
+sMLH.model.females.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.females.dens)
+coef(summary(sMLH.model.females.dens.lmer))
+VarCorr(sMLH.model.females.dens.lmer)
+simulateResiduals(fittedModel = sMLH.model.females.dens.lmer, plot = T)
+plot(sMLH.model.females.dens.lmer)
+r.squaredGLMM(sMLH.model.females.dens.lmer)
+icc(model = sMLH.model.females.dens.lmer, by_group = TRUE)
+
+compare_performance(sMLH.model.females.dens.lmer, sMLH.model.females.lmer, rank = T)
+
+#chick model
+sMLH.model.chicks.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.chicks.dens)
+coef(summary(sMLH.model.chicks.dens.lmer))
+VarCorr(sMLH.model.chicks.dens.lmer)
+simulateResiduals(fittedModel = sMLH.model.chicks.dens.lmer, plot = T)
+plot(sMLH.model.chicks.dens.lmer)
+r.squaredGLMM(sMLH.model.chicks.dens.lmer)
+icc(model = sMLH.model.chicks.dens.lmer, by_group = TRUE)
+
+compare_performance(sMLH.model.chicks.dens.lmer, sMLH.model.chicks.lmer, rank = T)
+
+#### Another model #####
+#male model
+sMLH.model.males.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.males.dens)
+anova(sMLH.model.males.lmer2)
+VarCorr(sMLH.model.males.lmer2)
+simulateResiduals(fittedModel = sMLH.model.males.lmer2, plot = T)
+plot(sMLH.model.males.lmer2)
+r.squaredGLMM(sMLH.model.males.lmer2)
+icc(model = sMLH.model.males.lmer2, by_group = TRUE)
+
+compare_performance(sMLH.model.males.dens.lmer, sMLH.model.males.lmer_noerror,sMLH.model.males.lmer2, rank = T)
+
+#female model
+sMLH.model.females.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.females.dens)
+anova(sMLH.model.females.lmer2)
+VarCorr(sMLH.model.females.lmer2)
+simulateResiduals(fittedModel = sMLH.model.females.lmer2, plot = T)
+plot(sMLH.model.females.lmer2)
+r.squaredGLMM(sMLH.model.females.lmer2)
+icc(model = sMLH.model.females.lmer2, by_group = TRUE)
+
+compare_performance(sMLH.model.females.dens.lmer, sMLH.model.females.lmer,sMLH.model.females.lmer2, rank = T)
+
+#chick model
+sMLH.model.chicks.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.chicks.dens)
+anova(sMLH.model.chicks.lmer2)
+VarCorr(sMLH.model.chicks.lmer2)
+simulateResiduals(fittedModel = sMLH.model.chicks.lmer2, plot = T)
+plot(sMLH.model.chicks.lmer2)
+r.squaredGLMM(sMLH.model.chicks.lmer2)
+icc(model = sMLH.model.chicks.lmer2, by_group = TRUE)
+
+compare_performance(sMLH.model.chicks.dens.lmer, sMLH.model.chicks.lmer_noerror,sMLH.model.chicks.lmer2, rank = T)
