@@ -241,7 +241,7 @@ k_var <- rep(1:up_to_k, each = nrep)
 ID_var <- as.character(sapply(c(1:up_to_k), function(k) sapply(c(1:nrep), function(x) paste0("T",k, "_", x))))
 
 # make the job matrix
-pop <- () #number of pops in the file
+pop <- ("2,4,5,10,11") #number of pops in the file
 
 hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, rep(burnin, nrep * up_to_k),
                       rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
