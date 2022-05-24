@@ -267,6 +267,51 @@ ParallelStructure::parallel_structure(structure_path=STR_path,
                                       printqhat=1,plot_output=0,onerowperind=0, locprior = 0)
 
 ##### Running structure for unrelated.chicks #####
+### total
+### hunted
+unrelated.chicks <- fread("data/cleandata/Microsat.unrelated.chicks.noLOCUS1+13+14.forstructure.stru") #located in /data in github directory
+infile_unrelated.chicks <- "data/cleandata/Microsat.unrelated.chicks.noLOCUS1+13+14.forstructure.stru"
+system("mkdir data/structure/Results_stru_unrelated.chicks")
+outpath_unrelated.chicks <- "data/structure/Results_stru_unrelated.chicks/"
+
+# job matrix and write to job file
+nrep <- 10
+burnin <- 10000
+niter <- 10000
+up_to_k <- 7
+
+# job matrix
+k_var <- rep(1:up_to_k, each = nrep)
+ID_var <- as.character(sapply(c(1:up_to_k), function(k) sapply(c(1:nrep), function(x) paste0("T",k, "_", x))))
+
+# make the job matrix
+pop <- ("1,2,4,5,10,11,12") #number of pops in the file
+
+hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, rep(burnin, nrep * up_to_k),
+                      rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
+
+write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), file = "data/structure/hunt_jobs_unrelated.chicks.txt")
+
+# file path to structure
+
+STR_path='/usr/local/bin/'
+
+# Run Parallel Structure
+
+# system("mkdir Results_adults")
+
+# Run structure (from terminal, do not run this last part in Rstudio)
+
+
+ParallelStructure::parallel_structure(structure_path=STR_path, 
+                                      joblist='data/structure/hunt_jobs_unrelated.chicks.txt', 
+                                      n_cpu=45, infile=infile_unrelated.chicks,
+                                      outpath=outpath_unrelated.chicks,numinds = nrow(unrelated.chicks)/2,
+                                      numloci=ncol(unrelated.chicks)-2,noadmix = 0, alpha = 1.0,freqscorr=1,lambda = 1,
+                                      printqhat=1,plot_output=0,onerowperind=0, locprior = 0)
+
+
+
 ### hunted
 unrelated.chicks_hunted <- fread("data/cleandata/SplitHuntedUnhunted/Microsat.unrelated.chicks.hunted.noLOCUS1+13.forstructure.stru") #located in /data in github directory
 infile_unrelated.chicks_hunted <- "data/cleandata/SplitHuntedUnhunted/Microsat.unrelated.chicks.hunted.noLOCUS1+13.forstructure.stru"
@@ -277,14 +322,14 @@ outpath_unrelated.chicks_hunted <- "data/structure/Results_stru_unrelated.chicks
 nrep <- 10
 burnin <- 10000
 niter <- 10000
-up_to_k <- 12
+up_to_k <- 7
 
 # job matrix
 k_var <- rep(1:up_to_k, each = nrep)
 ID_var <- as.character(sapply(c(1:up_to_k), function(k) sapply(c(1:nrep), function(x) paste0("T",k, "_", x))))
 
 # make the job matrix
-pop <- () #number of pops in the file
+pop <- ("1,12") #number of pops in the file
 
 hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, rep(burnin, nrep * up_to_k),
                       rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
@@ -320,14 +365,14 @@ outpath_unrelated.chicks_unhunted <- "data/structure/Results_stru_unrelated.chic
 nrep <- 10
 burnin <- 10000
 niter <- 10000
-up_to_k <- 12
+up_to_k <- 7
 
 # job matrix
 k_var <- rep(1:up_to_k, each = nrep)
 ID_var <- as.character(sapply(c(1:up_to_k), function(k) sapply(c(1:nrep), function(x) paste0("T",k, "_", x))))
 
 # make the job matrix
-pop <- () #number of pops in the file
+pop <- ("2,4,5,10,11") #number of pops in the file
 
 hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, rep(burnin, nrep * up_to_k),
                       rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
@@ -372,62 +417,71 @@ load_and_clumpp("data/structure/Results_stru_males_unhunted/Run_files/")
 load_and_K("data/structure/Results_stru_males_unhunted/Run_files/")
 ks_ad_male_unhunted <- load_and_K("data/structure/Results_stru_males_unhunted/Run_files/")
 save(ks_ad_male_unhunted, file = "data/structure/ks_ad_male_unhunted.R")
-optimal_k(ks_ad_male_unhunted) #8
-both_k(ks_ad_male_unhunted) #5, 8
+optimal_k(ks_ad_male_unhunted) #2
+both_k(ks_ad_male_unhunted) #7, 2
 
 ## females hunted
 make_directories("data/structure/Results_stru_females_hunted/")
 load_and_clumpp("data/structure/Results_stru_females_hunted/Run_files/")
 load_and_K("data/structure/Results_stru_females_hunted/Run_files/")
-ks_ad_male_hunted <- load_and_K("data/structure/Results_stru_females_hunted/Run_files/")
-save(ks_ad_male_hunted, file = "data/structure/ks_ad_male_hunted.R")
-optimal_k(ks_ad_male_hunted) #8
-both_k(ks_ad_male_hunted) #5, 8
+ks_ad_female_hunted <- load_and_K("data/structure/Results_stru_females_hunted/Run_files/")
+save(ks_ad_female_hunted, file = "data/structure/ks_ad_female_hunted.R")
+optimal_k(ks_ad_female_hunted) #1
+both_k(ks_ad_female_hunted) #1, 9
 
 ## females unhunted
 make_directories("data/structure/Results_stru_females_unhunted/")
 load_and_clumpp("data/structure/Results_stru_females_unhunted/Run_files/")
 load_and_K("data/structure/Results_stru_females_unhunted/Run_files/")
-ks_ad_male_unhunted <- load_and_K("data/structure/Results_stru_females_unhunted/Run_files/")
-save(ks_ad_male_unhunted, file = "data/structure/ks_ad_male_unhunted.R")
-optimal_k(ks_ad_male_unhunted) #8
-both_k(ks_ad_male_unhunted) #5, 8
+ks_ad_female_unhunted <- load_and_K("data/structure/Results_stru_females_unhunted/Run_files/")
+save(ks_ad_female_unhunted, file = "data/structure/ks_ad_female_unhunted.R")
+optimal_k(ks_ad_female_unhunted) #1
+both_k(ks_ad_female_unhunted) #1, 2
 
 ## chicks hunted
 make_directories("data/structure/Results_stru_chicks_hunted/")
 load_and_clumpp("data/structure/Results_stru_chicks_hunted/Run_files/")
 load_and_K("data/structure/Results_stru_chicks_hunted/Run_files/")
-ks_ad_male_hunted <- load_and_K("data/structure/Results_stru_chicks_hunted/Run_files/")
-save(ks_ad_male_hunted, file = "data/structure/ks_ad_male_hunted.R")
-optimal_k(ks_ad_male_hunted) #8
-both_k(ks_ad_male_hunted) #5, 8
+ks_ad_chick_hunted <- load_and_K("data/structure/Results_stru_chicks_hunted/Run_files/")
+save(ks_ad_chick_hunted, file = "data/structure/ks_ad_chick_hunted.R")
+optimal_k(ks_ad_chick_hunted) #79
+both_k(ks_ad_chick_hunted) #22,79
 
 ## chicks unhunted
 make_directories("data/structure/Results_stru_chicks_unhunted/")
 load_and_clumpp("data/structure/Results_stru_chicks_unhunted/Run_files/")
 load_and_K("data/structure/Results_stru_chicks_unhunted/Run_files/")
-ks_ad_male_unhunted <- load_and_K("data/structure/Results_stru_chicks_unhunted/Run_files/")
-save(ks_ad_male_unhunted, file = "data/structure/ks_ad_male_unhunted.R")
-optimal_k(ks_ad_male_unhunted) #8
-both_k(ks_ad_male_unhunted) #5, 8
+ks_ad_chick_unhunted <- load_and_K("data/structure/Results_stru_chicks_unhunted/Run_files/")
+save(ks_ad_chick_unhunted, file = "data/structure/ks_ad_chick_unhunted.R")
+optimal_k(ks_ad_chick_unhunted) #
+both_k(ks_ad_chick_unhunted) #
+
+## unrelated.chicks ALL
+make_directories("data/structure/Results_stru_unrelated.chicks/")
+load_and_clumpp("data/structure/Results_stru_unrelated.chicks/Run_files/")
+load_and_K("data/structure/Results_stru_unrelated.chicks/Run_files/")
+ks_ad_unrchick <- load_and_K("data/structure/Results_stru_unrelated.chicks/Run_files/")
+save(ks_ad_unrchick, file = "data/structure/ks_ad_unrchick.R")
+optimal_k(ks_ad_unrchick) #
+both_k(ks_ad_unrchick) #
 
 ## unrelated.chicks hunted
 make_directories("data/structure/Results_stru_unrelated.chicks_hunted/")
 load_and_clumpp("data/structure/Results_stru_unrelated.chicks_hunted/Run_files/")
 load_and_K("data/structure/Results_stru_unrelated.chicks_hunted/Run_files/")
-ks_ad_male_hunted <- load_and_K("data/structure/Results_stru_unrelated.chicks_hunted/Run_files/")
-save(ks_ad_male_hunted, file = "data/structure/ks_ad_male_hunted.R")
-optimal_k(ks_ad_male_hunted) #8
-both_k(ks_ad_male_hunted) #5, 8
+ks_ad_unrchick_hunted <- load_and_K("data/structure/Results_stru_unrelated.chicks_hunted/Run_files/")
+save(ks_ad_unrchick_hunted, file = "data/structure/ks_ad_unrchick_hunted.R")
+optimal_k(ks_ad_unrchick_hunted) #
+both_k(ks_ad_unrchick_hunted) #
 
 ## unrelated.chicks unhunted
 make_directories("data/structure/Results_stru_unrelated.chicks_unhunted/")
 load_and_clumpp("data/structure/Results_stru_unrelated.chicks_unhunted/Run_files/")
 load_and_K("data/structure/Results_stru_unrelated.chicks_unhunted/Run_files/")
-ks_ad_male_unhunted <- load_and_K("data/structure/Results_stru_unrelated.chicks_unhunted/Run_files/")
-save(ks_ad_male_unhunted, file = "data/structure/ks_ad_male_unhunted.R")
-optimal_k(ks_ad_male_unhunted) #8
-both_k(ks_ad_male_unhunted) #5, 8
+ks_ad_unrchick_unhunted <- load_and_K("data/structure/Results_stru_unrelated.chicks_unhunted/Run_files/")
+save(ks_ad_unrchick_unhunted, file = "data/structure/ks_ad_unrchick_unhunted.R")
+optimal_k(ks_ad_unrchick_unhunted) #
+both_k(ks_ad_unrchick_unhunted) #
 
 
 

@@ -1,0 +1,222 @@
+
+
+----------------------------------------------------
+STRUCTURE by Pritchard, Stephens and Donnelly (2000)
+     and Falush, Stephens and Pritchard (2003)
+       Code by Pritchard, Falush and Hubisz
+             Version 2.3.4 (Jul 2012)
+----------------------------------------------------
+
+
+
+Command line arguments:   /usr/local/bin/structure -m parameter_job_T3_1 
+Input File:    /data/home/rchen/Hunting/blackgrouse-hunting/data_job_T3_1
+
+Run parameters:
+   32 individuals
+   11 loci
+   3 populations assumed
+   10000 Burn-in period
+   10000 Reps
+
+
+--------------------------------------------
+Proportion of membership of each pre-defined
+ population in each of the 3 clusters
+
+Given    Inferred Clusters       Number of
+ Pop       1      2      3      Individuals
+
+  1:     0.333  0.335  0.332       26
+ 12:     0.331  0.350  0.319        6
+--------------------------------------------
+
+Allele-freq. divergence among pops (Net nucleotide distance),
+computed using point estimates of P.
+
+      1       2       3      
+ 1      -    0.0000  0.0007  
+ 2   0.0000     -    0.0009  
+ 3   0.0007  0.0009     -    
+
+Average distances (expected heterozygosity) between individuals in same cluster:
+cluster  1  : 0.7565 
+cluster  2  : 0.7601 
+cluster  3  : 0.7473 
+
+--------------------------------------------
+Estimated Ln Prob of Data   = -1190.5
+Mean value of ln likelihood = -1151.0
+Variance of ln likelihood   = 79.2
+Mean value of alpha         = 2.0031
+
+Mean value of Fst_1         = 0.0131
+Mean value of Fst_2         = 0.0001
+Mean value of Fst_3         = 0.0375
+
+
+Inferred ancestry of individuals:
+        Label (%Miss) Pop:  Inferred clusters
+  1   H105.4    (0)    1 :  0.345 0.352 0.303 
+  2   H115.3    (0)    1 :  0.349 0.331 0.320 
+  3   H145.1    (0)    1 :  0.316 0.309 0.375 
+  4   H149.6    (0)    1 :  0.313 0.306 0.381 
+  5   H150.1    (0)    1 :  0.343 0.345 0.312 
+  6 H169607.8    (0)    1 :  0.340 0.346 0.313 
+  7 H169633.5    (0)    1 :  0.318 0.317 0.365 
+  8 H169688.2    (0)    1 :  0.329 0.361 0.310 
+  9 H171901.5    (0)    1 :  0.339 0.311 0.349 
+ 10 H171902.3    (0)    1 :  0.337 0.348 0.315 
+ 11 H171903.5    (0)    1 :  0.337 0.333 0.330 
+ 12   H177.6    (0)    1 :  0.323 0.320 0.357 
+ 13   H179.1    (0)    1 :  0.349 0.332 0.319 
+ 14   H180.2    (0)    1 :  0.337 0.373 0.290 
+ 15   H181.7    (0)    1 :  0.327 0.345 0.327 
+ 16 H194.6_2004    (0)    1 :  0.333 0.337 0.330 
+ 17 H195.3_2003    (0)    1 :  0.343 0.357 0.300 
+ 18 H195.3_2004    (0)    1 :  0.317 0.327 0.357 
+ 19   H415.5    (0)    1 :  0.324 0.328 0.348 
+ 20   H506.5    (0)    1 :  0.336 0.329 0.335 
+ 21   H533.4    (0)    1 :  0.338 0.318 0.344 
+ 22   H535.1    (0)    1 :  0.325 0.352 0.323 
+ 23   H539.5    (0)    1 :  0.347 0.330 0.323 
+ 24   H540.7    (0)    1 :  0.333 0.323 0.344 
+ 25  H9558.1    (0)    1 :  0.337 0.352 0.311 
+ 26 kos339.2    (0)    1 :  0.324 0.316 0.359 
+ 27   H409.8    (0)   12 :  0.342 0.353 0.305 
+ 28   H413.2    (0)   12 :  0.318 0.377 0.305 
+ 29   H563.3    (0)   12 :  0.338 0.345 0.317 
+ 30  H7374.6    (0)   12 :  0.321 0.342 0.338 
+ 31  H9563.8    (0)   12 :  0.331 0.338 0.331 
+ 32  H9572.4    (0)   12 :  0.336 0.348 0.317 
+
+
+Estimated Allele Frequencies in each cluster
+First column gives estimated ancestral frequencies
+
+
+Locus 1 : 
+7 alleles
+0.0% missing data
+ 156   (0.159) 0.156 0.159 0.160 
+ 152   (0.162) 0.157 0.162 0.140 
+ 160   (0.284) 0.291 0.284 0.311 
+ 148   (0.097) 0.097 0.097 0.096 
+ 164   (0.151) 0.151 0.151 0.156 
+ 168   (0.126) 0.127 0.126 0.118 
+ 144   (0.022) 0.021 0.022 0.019 
+
+Locus 2 : 
+7 alleles
+0.0% missing data
+ 156   (0.197) 0.202 0.197 0.223 
+ 148   (0.084) 0.079 0.084 0.084 
+ 160   (0.120) 0.121 0.120 0.111 
+ 164   (0.257) 0.261 0.257 0.259 
+ 168   (0.094) 0.093 0.094 0.094 
+ 152   (0.206) 0.204 0.206 0.192 
+ 172   (0.043) 0.040 0.043 0.036 
+
+Locus 3 : 
+5 alleles
+0.0% missing data
+ 193   (0.193) 0.185 0.193 0.172 
+ 181   (0.204) 0.204 0.204 0.184 
+ 185   (0.289) 0.297 0.289 0.315 
+ 197   (0.079) 0.079 0.078 0.091 
+ 189   (0.235) 0.236 0.235 0.238 
+
+Locus 4 : 
+5 alleles
+0.0% missing data
+ 177   (0.327) 0.324 0.327 0.320 
+ 165   (0.248) 0.254 0.248 0.256 
+ 173   (0.148) 0.149 0.148 0.166 
+ 181   (0.116) 0.116 0.116 0.112 
+ 169   (0.161) 0.157 0.161 0.146 
+
+Locus 5 : 
+9 alleles
+0.0% missing data
+ 207   (0.177) 0.179 0.177 0.177 
+ 195   (0.132) 0.130 0.132 0.129 
+ 199   (0.251) 0.255 0.251 0.261 
+ 211   (0.085) 0.083 0.085 0.083 
+ 215   (0.061) 0.056 0.061 0.053 
+ 271   (0.029) 0.027 0.029 0.023 
+ 203   (0.197) 0.203 0.197 0.212 
+ 191   (0.025) 0.023 0.025 0.020 
+ 284   (0.044) 0.044 0.044 0.042 
+
+Locus 6 : 
+9 alleles
+0.0% missing data
+ 242   (0.254) 0.259 0.254 0.247 
+ 238   (0.234) 0.239 0.234 0.246 
+ 250   (0.119) 0.122 0.119 0.156 
+ 246   (0.157) 0.157 0.157 0.148 
+ 254   (0.088) 0.086 0.088 0.087 
+ 230   (0.072) 0.067 0.072 0.058 
+ 258   (0.026) 0.023 0.025 0.020 
+ 234   (0.026) 0.023 0.026 0.017 
+ 226   (0.025) 0.023 0.025 0.019 
+
+Locus 7 : 
+5 alleles
+0.0% missing data
+ 149   (0.782) 0.793 0.782 0.829 
+ 153   (0.128) 0.125 0.128 0.105 
+ 151   (0.027) 0.024 0.026 0.020 
+ 157   (0.029) 0.027 0.029 0.023 
+ 155   (0.034) 0.031 0.034 0.023 
+
+Locus 8 : 
+14 alleles
+0.0% missing data
+ 158   (0.061) 0.061 0.061 0.055 
+ 146   (0.181) 0.185 0.181 0.179 
+ 138   (0.116) 0.121 0.116 0.116 
+ 152   (0.123) 0.131 0.123 0.183 
+ 148   (0.067) 0.065 0.067 0.063 
+ 128   (0.126) 0.127 0.126 0.121 
+ 144   (0.026) 0.023 0.026 0.021 
+ 150   (0.073) 0.068 0.073 0.069 
+ 142   (0.046) 0.044 0.046 0.039 
+ 134   (0.034) 0.034 0.034 0.030 
+ 168   (0.028) 0.026 0.028 0.022 
+ 160   (0.039) 0.037 0.039 0.033 
+ 140   (0.032) 0.031 0.032 0.028 
+ 136   (0.046) 0.048 0.046 0.040 
+
+Locus 9 : 
+4 alleles
+0.0% missing data
+ 184   (0.210) 0.209 0.210 0.199 
+ 180   (0.235) 0.236 0.235 0.262 
+ 186   (0.476) 0.480 0.477 0.470 
+ 182   (0.079) 0.075 0.079 0.069 
+
+Locus 10 : 
+6 alleles
+0.0% missing data
+ 168   (0.111) 0.114 0.111 0.106 
+ 156   (0.164) 0.162 0.164 0.148 
+ 172   (0.243) 0.250 0.243 0.291 
+ 160   (0.222) 0.216 0.222 0.217 
+ 164   (0.229) 0.229 0.229 0.214 
+ 152   (0.031) 0.028 0.031 0.024 
+
+Locus 11 : 
+7 alleles
+0.0% missing data
+ 173   (0.149) 0.152 0.149 0.149 
+ 165   (0.288) 0.286 0.288 0.267 
+ 161   (0.105) 0.103 0.105 0.099 
+ 169   (0.318) 0.321 0.318 0.360 
+ 153   (0.039) 0.039 0.039 0.035 
+ 177   (0.067) 0.067 0.067 0.064 
+ 157   (0.033) 0.031 0.033 0.026 
+
+Values of parameters used in structure:
+DATAFILE=/data/home/rchen/Hunting/blackgrouse-hunting/data_job_T3_1,	OUTFILE=data/structure/Results_stru_unrelated.chicks_hunted/results_job_T3_1,	NUMINDS=32,	NUMLOCI=11,	MISSING=-9,	LABEL=1,	POPDATA=1,	POPFLAG=0,	PHENOTYPE=0,	EXTRACOLS=0,	MAXPOPS=3,	BURNIN=10000,	NUMREPS=10000,	USEPOPINFO=0,	INFERALPHA=1,	INFERLAMBDA=0,	POPSPECIFICLAMBDA=0,	POPALPHAS=0,	COMPUTEPROB=1,	NOADMIX=0,	ADMBURNIN=2500,	UPDATEFREQ=1,	PRINTLIKES=0,	INTERMEDSAVE=0,	PRINTKLD=0,	PRINTNET=0,	PRINTLAMBDA=0,	ANCESTDIST=0,	NUMBOXES=1000,	ANCESTPINT=0.90000,	GENSBACK=2,	MIGRPRIOR=0.05000,	PRINTQHAT=1,	PRINTQSUM=0,	ALPHA=1.0000,	FREQSCORR=1,	FPRIORMEAN=0.0100,	FPRIORSD=0.0500,	ONEFST=0,	LAMBDA=1.0000,	UNIFPRIORALPHA=1,	ALPHAMAX=10.0000,	ALPHAPRIORA=1.0000,	ALPHAPRIORB=2.0000,	ALPHAPROPSD=0.0250,	STARTATPOPINFO=0,	RANDOMIZE=1,	LINKAGE=0,	METROFREQ=10,	REPORTHITRATE=0,	MARKOVPHASE=-1,	PHASED=0,	PLOIDY=2,	PHASEINFO=0	LOCPRIOR=0, 	LOCPRIORINIT=1.000000, 	LOCDATA=0, 	LOCISPOP=0, 	LOCPRIORSTEP=0.100000, 	MAXLOCPRIOR=20.000000, 	SEED=1653381260,	
+[STRAT parameters]:    NUMSIMSTATS=1000,	PHENOTYPECOL=-9,	POOLFREQ=10,	LOCUSxONLY=0,	EMERROR=0.00100,	MISSINGPHENO=-9,	
