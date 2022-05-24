@@ -224,7 +224,11 @@ sMLH.adults.dens <- subset(sMLH.all.dens, age != "chick")
 
 ## building models: male
 #male model
-sMLH.model.males.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.males.dens)
+sMLH.males.dens.no.na <- subset(sMLH.males.dens, !is.na(density))
+sMLH.model.males.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.males.dens.no.na)
+sMLH.model.males.dens.lmer.null <- lmerTest::lmer(sMLH ~ density+ (1|pop), data = sMLH.males.dens.no.na)
+anova(sMLH.model.males.dens.lmer, sMLH.model.males.dens.lmer.null)
+
 coef(summary(sMLH.model.males.dens.lmer))
 VarCorr(sMLH.model.males.dens.lmer)
 simulateResiduals(fittedModel = sMLH.model.males.dens.lmer, plot = T)
@@ -236,6 +240,9 @@ compare_performance(sMLH.model.males.dens.lmer, sMLH.model.males.lmer_noerror, r
 
 #female model
 sMLH.model.females.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.females.dens)
+sMLH.model.females.dens.lmer.null <- lmerTest::lmer(sMLH ~ density + (1|pop), data = sMLH.females.dens)
+anova(sMLH.model.females.dens.lmer, sMLH.model.females.dens.lmer.null)
+
 coef(summary(sMLH.model.females.dens.lmer))
 VarCorr(sMLH.model.females.dens.lmer)
 simulateResiduals(fittedModel = sMLH.model.females.dens.lmer, plot = T)
@@ -247,6 +254,9 @@ compare_performance(sMLH.model.females.dens.lmer, sMLH.model.females.lmer, rank 
 
 #chick model
 sMLH.model.chicks.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.chicks.dens)
+sMLH.model.chicks.dens.lmer.null <- lmerTest::lmer(sMLH ~ density + (1|pop), data = sMLH.chicks.dens)
+anova(sMLH.model.chicks.dens.lmer, sMLH.model.chicks.dens.lmer.null)
+
 coef(summary(sMLH.model.chicks.dens.lmer))
 VarCorr(sMLH.model.chicks.dens.lmer)
 simulateResiduals(fittedModel = sMLH.model.chicks.dens.lmer, plot = T)
@@ -256,36 +266,40 @@ icc(model = sMLH.model.chicks.dens.lmer, by_group = TRUE)
 
 compare_performance(sMLH.model.chicks.dens.lmer, sMLH.model.chicks.lmer, rank = T)
 
-#### Another model #####
-#male model
-sMLH.model.males.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.males.dens)
-anova(sMLH.model.males.lmer2)
-VarCorr(sMLH.model.males.lmer2)
-simulateResiduals(fittedModel = sMLH.model.males.lmer2, plot = T)
-plot(sMLH.model.males.lmer2)
-r.squaredGLMM(sMLH.model.males.lmer2)
-icc(model = sMLH.model.males.lmer2, by_group = TRUE)
-
-compare_performance(sMLH.model.males.dens.lmer, sMLH.model.males.lmer_noerror,sMLH.model.males.lmer2, rank = T)
-
-#female model
-sMLH.model.females.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.females.dens)
-anova(sMLH.model.females.lmer2)
-VarCorr(sMLH.model.females.lmer2)
-simulateResiduals(fittedModel = sMLH.model.females.lmer2, plot = T)
-plot(sMLH.model.females.lmer2)
-r.squaredGLMM(sMLH.model.females.lmer2)
-icc(model = sMLH.model.females.lmer2, by_group = TRUE)
-
-compare_performance(sMLH.model.females.dens.lmer, sMLH.model.females.lmer,sMLH.model.females.lmer2, rank = T)
-
-#chick model
-sMLH.model.chicks.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.chicks.dens)
-anova(sMLH.model.chicks.lmer2)
-VarCorr(sMLH.model.chicks.lmer2)
-simulateResiduals(fittedModel = sMLH.model.chicks.lmer2, plot = T)
-plot(sMLH.model.chicks.lmer2)
-r.squaredGLMM(sMLH.model.chicks.lmer2)
-icc(model = sMLH.model.chicks.lmer2, by_group = TRUE)
-
-compare_performance(sMLH.model.chicks.dens.lmer, sMLH.model.chicks.lmer_noerror,sMLH.model.chicks.lmer2, rank = T)
+# #### Another model #####
+# #male model
+# sMLH.model.males.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.males.dens)
+# sMLH.model.males.lmer2.null <- lm(sMLH ~ year + pop, data = sMLH.males.dens)
+# lrt.males <- anova(sMLH.model.males.lmer2, sMLH.model.males.lmer2.null)
+# pval = lrt.males$"Pr(>F)"
+# 
+# anova(sMLH.model.males.lmer2)
+# VarCorr(sMLH.model.males.lmer2)
+# simulateResiduals(fittedModel = sMLH.model.males.lmer2, plot = T)
+# plot(sMLH.model.males.lmer2)
+# r.squaredGLMM(sMLH.model.males.lmer2)
+# icc(model = sMLH.model.males.lmer2, by_group = TRUE)
+# 
+# compare_performance(sMLH.model.males.dens.lmer, sMLH.model.males.lmer_noerror,sMLH.model.males.lmer2, rank = T)
+# 
+# #female model
+# sMLH.model.females.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.females.dens)
+# anova(sMLH.model.females.lmer2)
+# VarCorr(sMLH.model.females.lmer2)
+# simulateResiduals(fittedModel = sMLH.model.females.lmer2, plot = T)
+# plot(sMLH.model.females.lmer2)
+# r.squaredGLMM(sMLH.model.females.lmer2)
+# icc(model = sMLH.model.females.lmer2, by_group = TRUE)
+# 
+# compare_performance(sMLH.model.females.dens.lmer, sMLH.model.females.lmer,sMLH.model.females.lmer2, rank = T)
+# 
+# #chick model
+# sMLH.model.chicks.lmer2 <- lm(sMLH ~ hunt*year + hunt*pop, data = sMLH.chicks.dens)
+# anova(sMLH.model.chicks.lmer2)
+# VarCorr(sMLH.model.chicks.lmer2)
+# simulateResiduals(fittedModel = sMLH.model.chicks.lmer2, plot = T)
+# plot(sMLH.model.chicks.lmer2)
+# r.squaredGLMM(sMLH.model.chicks.lmer2)
+# icc(model = sMLH.model.chicks.lmer2, by_group = TRUE)
+# 
+# compare_performance(sMLH.model.chicks.dens.lmer, sMLH.model.chicks.lmer_noerror,sMLH.model.chicks.lmer2, rank = T)

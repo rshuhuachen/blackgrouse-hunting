@@ -392,6 +392,11 @@ migration_both <- rbind(male_run5_clean, female_run5_clean)
 model.both.in <- glmmTMB(migration_ESSc~ hunt_in + Distance + sex + (1|pop_out) + (1|pop_in), 
                          data = migration_both, 
                          family = Gamma(link = "log"))
+model.both.in.null <- glmmTMB(migration_ESSc~ Distance + sex + (1|pop_out) + (1|pop_in), 
+                         data = migration_both, 
+                         family = Gamma(link = "log"))
+anova(model.both.in.null, model.both.in)
+
 summary(model.both.in) 
 plot(model.both.in)
 simulateResiduals(fittedModel = model.both.in, plot = T)
@@ -399,6 +404,11 @@ simulateResiduals(fittedModel = model.both.in, plot = T)
 model.both.in.interaction <- glmmTMB(migration_ESSc~ hunt_in + Distance*sex + (1|pop_out) + (1|pop_in), 
                          data = migration_both, 
                          family = Gamma(link = "log"))
+model.both.in.interaction.null <- glmmTMB(migration_ESSc~ Distance*sex + (1|pop_out) + (1|pop_in), 
+                                     data = migration_both, 
+                                     family = Gamma(link = "log"))
+anova(model.both.in.interaction, model.both.in.interaction.null)
+
 summary(model.both.in.interaction) 
 plot(model.both.in.interaction)
 simulateResiduals(fittedModel = model.both.in.interaction, plot = T)
@@ -407,13 +417,25 @@ simulateResiduals(fittedModel = model.both.in.interaction, plot = T)
 model.both.out <- glmmTMB(migration_ESSc~ hunt_out + Distance + sex + (1|pop_out) + (1|pop_in), 
                           data = migration_both, 
                           family = Gamma(link = "log"))
+model.both.out.null <- glmmTMB(migration_ESSc~ Distance + sex + (1|pop_out) + (1|pop_in), 
+                          data = migration_both, 
+                          family = Gamma(link = "log"))
+
+anova(model.both.out, model.both.out.null)
+
 summary(model.both.out) 
+
 plot(model.both.out)
 simulateResiduals(fittedModel = model.both.out, plot = T)
 
 model.both.out.interaction <- glmmTMB(migration_ESSc~ hunt_out + Distance*sex + (1|pop_out) + (1|pop_in), 
                           data = migration_both, 
                           family = Gamma(link = "log"))
+model.both.out.interaction.null <- glmmTMB(migration_ESSc~ Distance*sex + (1|pop_out) + (1|pop_in), 
+                                      data = migration_both, 
+                                      family = Gamma(link = "log"))
+anova(model.both.out.interaction, model.both.out.interaction.null)
+
 summary(model.both.out.interaction) 
 plot(model.both.out.interaction)
 simulateResiduals(fittedModel = model.both.out.interaction, plot = T)

@@ -102,12 +102,17 @@ measures.all$pop <- as.factor(measures.all$pop)
 measures.all$hunt <- as.factor(measures.all$hunt)
 
 Ho_model <- lmerTest::lmer(Hobs ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13")) # excluding BG20
-He_model <- lmerTest::lmer(Hexp ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
-Ar_model <- lmerTest::lmer(Ar ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+Ho_model_null <- lmerTest::lmer(Hobs ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L13")) # excluding BG20
 
-anova(Ho_model)
-anova(He_model)
-anova(Ar_model)
+He_model <- lmerTest::lmer(Hexp ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+He_model_null <- lmerTest::lmer(Hexp ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+
+Ar_model <- lmerTest::lmer(Ar ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+Ar_model_null <- lmerTest::lmer(Ar ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+
+anova(Ho_model, Ho_model_null)
+anova(He_model, He_model_null)
+anova(Ar_model, Ar_model_null)
 
 #### PCA ####
 
