@@ -229,8 +229,10 @@ sMLH.adults.dens <- subset(sMLH.all.dens, age != "chick")
 #male model
 sMLH.males.dens.no.na <- subset(sMLH.males.dens, !is.na(density))
 sMLH.model.males.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.males.dens.no.na)
+sMLH.model.males.dens.lmer.noint <- lmerTest::lmer(sMLH ~ hunt + density + (1|pop), data = sMLH.males.dens.no.na)
 sMLH.model.males.dens.lmer.null <- lmerTest::lmer(sMLH ~ density+ (1|pop), data = sMLH.males.dens.no.na)
-anova(sMLH.model.males.dens.lmer, sMLH.model.males.dens.lmer.null)
+anova(sMLH.model.males.dens.lmer.null, sMLH.model.males.dens.lmer)
+anova(sMLH.model.males.dens.lmer.null, sMLH.model.males.dens.lmer.noint)
 
 coef(summary(sMLH.model.males.dens.lmer))
 VarCorr(sMLH.model.males.dens.lmer)
@@ -243,8 +245,10 @@ icc(model = sMLH.model.males.dens.lmer, by_group = TRUE)
 
 #female model
 sMLH.model.females.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.females.dens)
+sMLH.model.females.dens.lmer.noint <- lmerTest::lmer(sMLH ~ hunt+density + (1|pop), data = sMLH.females.dens)
 sMLH.model.females.dens.lmer.null <- lmerTest::lmer(sMLH ~ density + (1|pop), data = sMLH.females.dens)
-anova(sMLH.model.females.dens.lmer, sMLH.model.females.dens.lmer.null)
+anova(sMLH.model.females.dens.lmer.null, sMLH.model.females.dens.lmer)
+anova(sMLH.model.females.dens.lmer.null, sMLH.model.females.dens.lmer.noint)
 
 coef(summary(sMLH.model.females.dens.lmer))
 VarCorr(sMLH.model.females.dens.lmer)
@@ -257,8 +261,10 @@ icc(model = sMLH.model.females.dens.lmer, by_group = TRUE)
 
 #chick model
 sMLH.model.chicks.dens.lmer <- lmerTest::lmer(sMLH ~ hunt*density + (1|pop), data = sMLH.chicks.dens)
+sMLH.model.chicks.dens.lmer.noint <- lmerTest::lmer(sMLH ~ hunt+density + (1|pop), data = sMLH.chicks.dens)
 sMLH.model.chicks.dens.lmer.null <- lmerTest::lmer(sMLH ~ density + (1|pop), data = sMLH.chicks.dens)
-anova(sMLH.model.chicks.dens.lmer, sMLH.model.chicks.dens.lmer.null)
+anova(sMLH.model.chicks.dens.lmer.null, sMLH.model.chicks.dens.lmer)
+anova(sMLH.model.chicks.dens.lmer.null, sMLH.model.chicks.dens.lmer.noint)
 
 coef(summary(sMLH.model.chicks.dens.lmer))
 VarCorr(sMLH.model.chicks.dens.lmer)
