@@ -14,12 +14,15 @@ theme_set(theme_classic())
 #### Figure 2: heatmaps pairwise Fst + correlograms spatial autocorrelation ####
 
 ### First: heatmap
+pairwise.fst <- read.csv("data/tables/Pairwise_Fst_all.csv")
+
 pairwise.fst.males <- read.csv("data/tables/Pairwise_Fst_males.csv")
 pairwise.fst.females <- read.csv("data/tables/Pairwise_Fst_females.csv")
 pairwise.fst.chicks <- read.csv("data/tables/Pairwise_Fst_chicks.csv")
 
 #change the negative values to 0 in females
 pairwise.fst.females$Fst[which (pairwise.fst.females$Fst < 0)] <- 0
+pairwise.fst$Fst[which (pairwise.fst$Fst < 0)] <- 0
 
 # add abbreviation to data
 sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
@@ -31,9 +34,12 @@ str(sitenames)
 pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.x" = "pop_num"))
 pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.y" = "pop_num"))
 
-### Males - pairwise Fst heatmap
-ggplot(pairwise.fst.males, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
-  scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
+pairwise.fst <- left_join(pairwise.fst, sitenames[,c(1,6,2)], by = c("site.x" = "pop_num"))
+pairwise.fst <- left_join(pairwise.fst, sitenames[,c(1,6,2)], by = c("site.y" = "pop_num"))
+
+### All - pairwise Fst heatmap
+pairwise.fst.fig <- ggplot(pairwise.fst, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
+  scale_fill_gradientn(colors = mypalette3, limits = c(0,0.02)) + 
   geom_text(aes(label = Sig), size = 8)+
   theme(text = element_text(family = "Arial", size = 22),
         axis.text.x = element_text(angle = 90, size = 22,
@@ -51,50 +57,9 @@ ggplot(pairwise.fst.males, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         legend.position = c(0.8, 0.3)) +
-  ggtitle('(a) Males') 
+  ggtitle('(a) Fst adults and unrelated chicks combined') 
 
-
-### Females - pairwise Fst heatmap
-ggplot(pairwise.fst.females, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
-  scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
-  geom_text(aes(label = Sig), size = 8)+ 
-  theme(text = element_text(family = "Arial", size = 22),
-        axis.text.x = element_text(angle = 90, size = 22,
-                                   face = c("bold", "plain", "bold", "plain", "plain",
-                                            "bold", "bold", "plain", "bold",
-                                            "plain", "plain")), 
-        axis.text.y = element_text(size = 22, 
-                                   face = c("plain", "bold", "plain", "plain",
-                                            "bold", "bold", "plain", "bold",
-                                            "plain", "plain", "bold")),
-        axis.title.x = element_blank(), 
-        axis.title.y = element_blank(),
-        legend.text = element_text(size = 26),
-        legend.title = element_text(size = 26),
-        legend.key.size = unit(1, 'cm'),
-        plot.title = element_text(size = 38),
-        legend.position = c(0.8, 0.3)) +
-  ggtitle('(b) Females') 
-
-### Chicks - Pairwise FST
-chicks.fst <- ggplot(pairwise.fst.chicks, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
-  scale_fill_gradientn(colors = mypalette3, limits = c(0,0.05)) + 
-  geom_text(aes(label = Sig), size = 8)+ 
-  theme(text = element_text(family = "Helvetica", size = 22),
-        axis.text.x = element_text(angle = 90, size = 22,
-                                   face = c("bold", "plain", "plain", 
-                                            "plain", "plain", "plain")), 
-        axis.text.y = element_text(size = 20, 
-                                   face = c("plain", "plain", "plain", "plain",
-                                            "plain", "bold")),
-        axis.title.x = element_blank(), 
-        axis.title.y = element_blank(),
-        legend.text = element_text(size = 26),
-        legend.title = element_text(size = 26),
-        legend.key.size = unit(1, 'cm'),
-        plot.title = element_text(size = 38),
-        legend.position = c(0.8, 0.3)) +
-  ggtitle("(c) Chicks ")
+ggsave(pairwise.fst.fig, filename="data/figures/Fst_all.png")
 
 ### Second - correlograms ###
 spatial <- read_excel("data/tables/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
@@ -184,6 +149,8 @@ emigration.plot <- ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, 
                     labels=c("Male", "Female"))+
   guides(fill = guide_legend("Sex")) 
 
+library(ggsignif)
+
 emigration.plot.poster <- ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) + 
   geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
   ylab("Migration rate")+
@@ -201,8 +168,8 @@ emigration.plot.poster <- ggplot(migration_both, aes(x = hunt_out, y = migration
     plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
     panel.grid.major = element_blank(), #remove major gridlines
     panel.grid.minor = element_blank() #remove minor gridlines
-
-  )
+  ) + geom_text(x = 1.5, y = 0.028, label = "*", size = 10) + geom_segment(x = 1, xend = 2, y = 0.025, yend = 0.025)+
+  geom_segment(x=1, xend = 1, y = 0.025, yend = 0.024)+geom_segment(x=2, xend = 2, y = 0.025, yend = 0.024)
 
 emigration.plot
 emigration.plot.poster
@@ -245,7 +212,9 @@ immmigration.plot.poster <- ggplot(migration_both, aes(x = hunt_in, y = migratio
     plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
     panel.grid.major = element_blank(), #remove major gridlines
     panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent')) #transparent legend bg )
+    legend.background = element_rect(fill='transparent'))+ #transparent legend bg )
+  geom_text(x = 1.5, y = 0.028, label = "*", size = 10) + geom_segment(x = 1, xend = 2, y = 0.025, yend = 0.025)+
+  geom_segment(x=1, xend = 1, y = 0.025, yend = 0.024)+geom_segment(x=2, xend = 2, y = 0.025, yend = 0.024)
 
 immmigration.plot
 immmigration.plot.poster
@@ -261,6 +230,7 @@ ggsave(plot = emigration.plot.poster, "data/figures/Emigration_forposter.png",
 
 ggsave(plot = immmigration.plot.poster, "data/figures/Immigration_forposter.png",
        width = 30, height = 20, units = c("cm"))
+
 #### Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
 
 load("data/structure/ks_ad_fem.R")
