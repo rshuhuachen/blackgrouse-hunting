@@ -6,9 +6,12 @@
 
 library(RColorBrewer); library(ggplot2); library(extrafont); 
 library(dplyr); library(readxl); library(devtools); library(pophelper)
-library(gridExtra); library(adegenet)
+library(gridExtra); library(adegenet); library(ggthemr)
 
 #palette
+palette1 = c("#be4d5a","#474b4e","#8b95c9","#f7f6f0","#57939a","#d7d6d5","#4d9de0","#785964","#918ef4","#519e8a",
+                    "#df2a3f","#224f71","#7184e5","#fbf8ea","#2ab6c5","#ebd6c1","#3d9ff0","#a62c56","#8e8afa","#28c89d",
+                    "#ff0a27","#005494","#5773ff","#fffae5","#00d8f0","#ffd6ad","#2ea1ff","#d10049","#8985ff","#00f0b0")
 mypalette3 <- c("#EDEDFD","#C2C1EC","#9795DB","#6C69C9","#413DB8","#1611A7") #purples from structure
 theme_set(theme_classic())
 #### Figure 2: heatmaps pairwise Fst + correlograms spatial autocorrelation ####
@@ -238,7 +241,7 @@ ks_all <- read.csv("analyses/structure/results/Run_files/output.csv")
 #### plotting K vs mean log likelihood
 
 ks_all_plot <- ggplot(ks_all, aes(x = k, y = elpdmean)) +
-  geom_point() + geom_line()+ ylab("LnPr(X|k)") +
+  geom_point(col="black") + geom_line(col="black")+ ylab("LnPr(X|k)") +
   scale_x_continuous(name = "k", 
                      breaks = c(1:12),
                      labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")) +
@@ -251,34 +254,29 @@ ks_all_plot <- ggplot(ks_all, aes(x = k, y = elpdmean)) +
         axis.title.x = element_text(size = 22),
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
-        plot.title = element_text(size = 22)) + 
-  labs(title = "(b)") 
+        plot.title = element_text(size = 22)) 
 
 ks_all_plot
 
 library(cowplot); library(gridExtra)
-png("data/figures/K_all.png", 
-    width = 1000, height = 700, units = "px")
-grid.arrange(ks_male, ks_fem, ks_chick)
-dev.off()
+ggsave(plot=ks_all_plot, "figures/K_combined.png", device = "png",
+       width = 3000, height = 1000, unit="px")
 
 ##### Supplementary Figure 2: barplots STRUCTURE #####
 
 ##### First plot the bargraphs for 10 different K's an example of 10 different runs
-
-## males 
-males_path_to_structure_out <- "data/structure/Results_stru_males/Run_files/"
-males_path_to_struc_file <- "data/cleandata/Microsat.males.noLOCUS1+13.forstructure.stru"
-males_all_files <- list.files(males_path_to_structure_out, pattern = "^results")
-males_struc_out_paths <- paste0(males_path_to_structure_out, males_all_files)
-males_slist <- readQ(files=males_struc_out_paths, filetype = "structure")
+all_path_to_structure_out <- "analyses/structure/results/Run_files/"
+all_path_to_struc_file <- "data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru"
+all_all_files <- list.files(all_path_to_structure_out, pattern = "^results")
+all_struc_out_paths <- paste0(all_path_to_structure_out, all_all_files)
+all_slist <- readQ(files=all_struc_out_paths, filetype = "structure")
 fn1 <- function(x) attr(x,"k")
-males_spnames <- paste0("K=",sapply(males_slist,fn1))
+all_spnames <- paste0("K=",sapply(all_slist,fn1))
 ggthemr(palette = "solarized", layout = "clean",
         line_weight = 0.7, text_size = 20, type = "outer")
 swatch()
-males_struc_file <- males_path_to_struc_file
-males_pops <- fread(males_struc_file) %>%
+all_struc_file <- all_path_to_struc_file
+all_pops <- fread(all_struc_file) %>%
   select(V2) %>%
   mutate(V2 = ifelse(V2 == 1, "Koskenpää",
                      ifelse(V2 == 2, "Kummunsuo",
@@ -291,149 +289,51 @@ males_pops <- fread(males_struc_file) %>%
                                                                       ifelse(V2 == 9, "Pirttisuo",
                                                                              ifelse(V2 == 10, "Saarisuo",
                                                                                     ifelse(V2 == 11, "Teerisuo", "Utusuo"))))))))))))
-males_pops <- data.frame(males_pops[seq(1, nrow(males_pops), 2)])
-colnames(males_pops) <- "location"
-males_pops$location <- as.character(males_pops$location)
+all_pops <- data.frame(all_pops[seq(1, nrow(all_pops), 2)])
+colnames(all_pops) <- "location"
+all_pops$location <- as.character(all_pops$location)
 
-## Males: best log likelihood and also highest delta K = 4
+## all: best log likelihood and also highest delta K = 4
 
-## just highest log likelihood K = 4 (run 601) and split up per group
-plotQ(qlist=(males_slist)[c(601)],imgoutput = "sep", grplab=males_pops,ordergrp = TRUE,sortind = "all",
+## just highest log likelihood K = 4 (run 61) and split up per group
+plotQ(qlist=(all_slist)[c(61)],imgoutput = "sep", 
+      grplab=all_pops,ordergrp = TRUE,sortind = "all",
       clustercol=palette1,
-      subsetgrp = c("Koskenpää","Kummunsuo","Lauttasuo","Lehtosuo","Nyrölä"),
-      outputfilename = "K11_males_simplecolours_a", exportpath = getwd(), 
+      subsetgrp = c("Koskenpää","Kummunsuo","Lauttasuo","Lehtosuo","Nyrölä","Palosuo"),
+      outputfilename = "K4_combined_a", exportpath = paste0(getwd(), "/figures"), 
+      sharedindlab = F,
+      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, showsp = F, 
+      grplabangle = 90, panelspacer = 0.02, grplabsize = 5, showtitle = F, titlesize = 14, titlespacer = 2,
+      height = 8, width = 20, splab = "", splabcol = "white", grplabpos = 0.54, linepos = 1)
+
+plotQ(qlist=(all_slist)[c(61)],imgoutput = "sep", grplab=all_pops,ordergrp = TRUE,sortind = "all",
+      clustercol=palette1,
+      subsetgrp = c("Pihtissuo", "Pirttilampi", "Pirttisuo", "Saarisuo", "Teerisuo", "Utusuo"),
+      outputfilename = "K4_combined_b", exportpath = paste0(getwd(), "/figures"), 
+      sharedindlab = F,
+      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, showsp = F, 
+      grplabangle = 90, panelspacer = 0.02, grplabsize = 5, showtitle = F, titlesize = 14, titlespacer = 2,
+      height = 8, width = 20, splab = "", splabcol = "white", grplabpos = 0.65, linepos = 1)
+
+## K = 2
+plotQ(qlist=(all_slist)[c(41)],imgoutput = "sep", 
+      grplab=all_pops,ordergrp = TRUE,sortind = "all",
+      clustercol=palette1,
+      subsetgrp = c("Koskenpää","Kummunsuo","Lauttasuo","Lehtosuo","Nyrölä","Palosuo"),
+      outputfilename = "K2_combined_a", exportpath = paste0(getwd(), "/figures"), 
       sharedindlab = F,
       panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, showsp = F, 
       grplabangle = 25, panelspacer = 0.02, grplabsize = 6, showtitle = F, titlesize = 14, titlespacer = 2,
       height = 8, width = 20, splab = "", splabcol = "white", grplabpos = 0.75, linepos = 1)
 
-plotQ(qlist=(males_slist)[c(601)],imgoutput = "sep", grplab=males_pops,ordergrp = TRUE,sortind = "all",
+plotQ(qlist=(all_slist)[c(41)],imgoutput = "sep", grplab=all_pops,ordergrp = TRUE,sortind = "all",
       clustercol=palette1,
-      subsetgrp = c("Palosuo", "Pihtissuo", "Pirttilampi", "Pirttisuo", "Saarisuo", "Teerisuo", "Utusuo"),
-      outputfilename = "K11_males_simplecolours_b", exportpath = getwd(), 
+      subsetgrp = c("Pihtissuo", "Pirttilampi", "Pirttisuo", "Saarisuo", "Teerisuo", "Utusuo"),
+      outputfilename = "K2_combined_b", exportpath = paste0(getwd(), "/figures"), 
       sharedindlab = F,
       panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, showsp = F, 
       grplabangle = 25, panelspacer = 0.02, grplabsize = 6, showtitle = F, titlesize = 14, titlespacer = 2,
       height = 8, width = 20, splab = "", splabcol = "white", grplabpos = 0.75, linepos = 1)
 
 
-## females 
-females_path_to_structure_out <- "data/structure/Results_stru_females/Run_files/"
-females_path_to_struc_file <- "data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru"
-females_all_files <- list.files(females_path_to_structure_out, pattern = "^results")
-females_struc_out_paths <- paste0(females_path_to_structure_out, females_all_files)
-females_slist <- readQ(files=females_struc_out_paths, filetype = "structure")
-females_spnames <- paste0("K=",sapply(females_slist,fn1))
-females_struc_file <- females_path_to_struc_file
-females_pops <- fread(females_struc_file) %>%
-  select(V2) %>%
-  mutate(V2 = ifelse(V2 == 1, "Koskenpää",
-                     ifelse(V2 == 2, "Kummunsuo",
-                            ifelse(V2 == 3, "Lauttasuo",
-                                   ifelse(V2 == 4, "Lehtosuo", 
-                                          ifelse(V2 == 5, "Nyrölä",
-                                                 ifelse(V2 == 6, "Palosuo",
-                                                        ifelse(V2 == 7, "Pihtissuo", 
-                                                               ifelse(V2== 8, "Pirttilampi",
-                                                                      ifelse(V2 == 9, "Pirttisuo",
-                                                                             ifelse(V2 == 10, "Saarisuo",
-                                                                                    ifelse(V2 == 11, "Teerisuo", "Utusuo"))))))))))))
-females_pops <- data.frame(females_pops[seq(1, nrow(females_pops), 2)])
-colnames(females_pops) <- "location"
-females_pops$location <- as.character(females_pops$location)
-
-#system("mkdir /data/structure/Results_stru_females/Run_files/Plots/")
-#highest delta k = 2 (run 401)
-plotQ(qlist=(females_slist)[c(401)], splab="", imgoutput = "sep", grplab=females_pops,ordergrp = TRUE,
-      clustercol=c("#BE4D5A", "#8B95C9"), 
-      subsetgrp = c("Koskenpää","Kummunsuo","Lauttasuo","Lehtosuo","Nyrölä"),sortind = "all",
-      outputfilename = "K2_females_simplecolours_a", grplabangle = 25, panelspacer = 0.04, grplabsize = 6, 
-      exportpath = getwd(),
-      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4,  
-      splabsize = 6, showtitle = F, 
-      height = 8, width = 20,  splabcol = "white", grplabpos = 0.75, linepos = 1)
-
-plotQ(qlist=(females_slist)[c(401)], splab="", imgoutput = "sep", grplab=females_pops,ordergrp = TRUE,
-      clustercol=c("#BE4D5A", "#8B95C9"), 
-      subsetgrp = c("Palosuo", "Pihtissuo", "Pirttilampi", "Pirttisuo", "Saarisuo", "Teerisuo", "Utusuo"),sortind = "all",
-      outputfilename = "K2_females_simplecolours_b", grplabangle = 25, panelspacer = 0.04, grplabsize = 6, 
-      exportpath = getwd(),
-      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4,  
-      splabsize = 6, showtitle = F, 
-      height = 8, width = 20,  splabcol = "white", grplabpos = 0.75, linepos = 1)
-
-
-#### chicks
-
-chicks_path_to_structure_out <- "data/structure/Results_stru_chicks/Run_files/"
-chicks_path_to_struc_file <- "data/cleandata/Microsat.chicks.noLOCUS1+13+14.forstructure.stru"
-chicks_all_files <- list.files(chicks_path_to_structure_out, pattern = "^results")
-chicks_struc_out_paths <- paste0(chicks_path_to_structure_out, chicks_all_files)
-chicks_slist <- readQ(files=chicks_struc_out_paths, filetype = "structure", indlabfromfile=T)
-
-chicks_spnames <- paste0("K=",sapply(chicks_slist,fn1))
-
-chicks_struc_file <- chicks_path_to_struc_file
-chicks_pops <- fread(chicks_struc_file) %>%
-  select(V2) %>%
-  mutate(V2 = ifelse(V2 == 1, "Koskenpää",
-                     ifelse(V2 == 2, "Kummunsuo",
-                            ifelse(V2 == 3, "Lauttasuo",
-                                   ifelse(V2 == 4, "Lehtosuo", 
-                                          ifelse(V2 == 5, "Nyrölä",
-                                                 ifelse(V2 == 6, "Palosuo",
-                                                        ifelse(V2 == 7, "Pihtissuo", 
-                                                               ifelse(V2== 8, "Pirttilampi",
-                                                                      ifelse(V2 == 9, "Pirttisuo",
-                                                                             ifelse(V2 == 10, "Saarisuo",
-                                                                                    ifelse(V2 == 11, "Teerisuo", "Utusuo"))))))))))))
-chicks_pops <- data.frame(chicks_pops[seq(1, nrow(chicks_pops), 2)])
-colnames(chicks_pops) <- "location"
-chicks_pops$location <- as.character(chicks_pops$location)
-
-palette1.chicks = c("#be4d5a","#474b4e","#8b95c9","#f7f6f0","#57939a","#d7d6d5","#4d9de0","#785964","#918ef4","#519e8a",
-                    "#df2a3f","#224f71","#7184e5","#fbf8ea","#2ab6c5","#ebd6c1","#3d9ff0","#a62c56","#8e8afa","#28c89d",
-                    "#ff0a27","#005494","#5773ff","#fffae5","#00d8f0","#ffd6ad","#2ea1ff","#d10049","#8985ff","#00f0b0",
-                    "#be4d5a","#474b4e","#8b95c9","#f7f6f0","#57939a","#d7d6d5","#4d9de0","#785964","#918ef4","#519e8a",
-                    "#df2a3f","#224f71","#7184e5","#fbf8ea","#2ab6c5","#ebd6c1","#3d9ff0","#a62c56","#8e8afa","#28c89d",
-                    "#ff0a27","#005494","#5773ff","#fffae5","#00d8f0","#ffd6ad","#2ea1ff","#d10049","#8985ff","#00f0b0",
-                    "#be4d5a","#474b4e","#8b95c9","#f7f6f0","#57939a","#d7d6d5","#4d9de0","#785964","#918ef4","#519e8a",
-                    "#df2a3f","#224f71","#7184e5","#fbf8ea","#2ab6c5","#ebd6c1","#3d9ff0","#a62c56","#8e8afa","#28c89d",
-                    "#ff0a27","#005494","#5773ff","#fffae5","#00d8f0","#ffd6ad","#2ea1ff","#d10049","#8985ff","#00f0b0",
-                    "#be4d5a","#474b4e","#8b95c9","#f7f6f0","#57939a","#d7d6d5","#4d9de0","#785964","#918ef4","#519e8a")
-#repeating colours
-
-## Chicks: highest delta K = 20 only (run 1122)
-plotQ(qlist=(chicks_slist)[c(1122)], imgoutput = "sep", grplab=palette1.chicks,ordergrp = TRUE, showsp = FALSE, showtitle = F,
-      sortind = "all", sharedindlab = FALSE,clustercol=palette1, 
-      subsetgrp = c("Koskenpää","Kummunsuo","Lehtosuo"),
-      outputfilename = "K17_chicks_simplecolours_a", grplabangle = 25, panelspacer = 0.02, grplabsize = 6, 
-      exportpath = getwd(),
-      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, 
-      height = 8, width = 20,  splabcol = "white", grplabpos = 0.75, linepos = 1)
-
-plotQ(qlist=(chicks_slist)[c(1122)], imgoutput = "sep", grplab=palette1.chicks,ordergrp = TRUE, showsp = FALSE, showtitle = F,
-      sortind = "all", sharedindlab = FALSE,clustercol=palette1, 
-      subsetgrp = c("Nyrölä","Saarisuo","Teerisuo", "Utusuo"),
-      outputfilename = "K17_chicks_simplecolours_b", grplabangle = 25, panelspacer = 0.02, grplabsize = 6, 
-      exportpath = getwd(),
-      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, 
-      height = 8, width = 20,  splabcol = "white", grplabpos = 0.75, linepos = 1)
-
-## Chicks: best log likelihood K = 27 only (run 1971)
-plotQ(qlist=(chicks_slist)[c(1971)], imgoutput = "sep", grplab=palette1.chicks,ordergrp = TRUE,
-      sortind = "all", sharedindlab = FALSE,clustercol=palette1, 
-      subsetgrp = c("Koskenpää","Kummunsuo","Lehtosuo"),
-      outputfilename = "K27_chicks_simplecolours_a", grplabangle = 25, panelspacer = 0.02, grplabsize = 6, 
-      exportpath = getwd(),
-      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, showsp = FALSE, showtitle = F,
-      height = 8, width = 20,  splabcol = "white", grplabpos = 0.75, linepos = 1)
-
-plotQ(qlist=(chicks_slist)[c(1971)], imgoutput = "sep", grplab=palette1.chicks,ordergrp = TRUE,
-      sortind = "all", sharedindlab = FALSE,clustercol=palette1, 
-      subsetgrp = c("Nyrölä","Saarisuo","Teerisuo", "Utusuo"),
-      outputfilename = "K27_chicks_simplecolours_b", grplabangle = 25, panelspacer = 0.02, grplabsize = 6, 
-      exportpath = getwd(),
-      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, showsp = FALSE, showtitle = F,
-      height = 8, width = 20,  splabcol = "white", grplabpos = 0.75, linepos = 1)
 

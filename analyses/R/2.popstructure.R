@@ -6,8 +6,7 @@
 ## load libraries
 library(data.table); library(tidyverse); library(hierfstat); 
 library(plot.matrix); library(lme4); library(adegenet); library(forcats)
-library(ape)
-
+library(ape); library(readxl); library(tibble)
 all.raw <- read.structure ("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru", n.ind = 2078, n.loc = 13, onerowperind = F,
                        col.lab = 1, col.pop = 2, col.others = NULL,
                        row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
@@ -19,6 +18,12 @@ all <- read.structure ("data/cleandata/Microsat.adults.plus.unrelated.chicks.noL
                                 ask = F, quiet = FALSE)
 
 pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+pops[1,1] <- "Koskenpää"
+pops[5,1] <- "Nyrölä"
+
+males.data <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv")
+females.data <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv")
+chicks.data <- fread("data/cleandata/Unsplit.microsat.unrelated.chicks.noLOCUS1+13+14.csv")
 
 #### Summary statistics ####
 
@@ -175,4 +180,61 @@ pairwise.fst.all <- pairwise.fst.all %>% mutate(Sig = case_when(
   UL < 0 & LL < 0 ~ "" ))
 
 write.csv(pairwise.fst.all, "tables/Pairwise_Fst_all.csv", row.names = F, quote=F)
+
+#### Spatial autocorrelation #####
+
+# add site names rather than numbers
+males.data <- left_join(males.data, pops[,-3], by = c("pop" = "pop_num"))
+females.data <- left_join(females.data, pops[,-3], by = c("pop" = "pop_num"))
+chicks.data <- left_join(chicks.data, pops[,-3], by = c("pop" = "pop_num"))
+
+males.data <- males.data[,c(1,27,3:26,28,29)] #select only pop in letters not numbers
+names(males.data)[2] <- "SITE"
+names(males.data)[1]<- "CODE"
+
+females.data <- females.data[,c(1,27,3:26,28,29)] #select only pop in letters not numbers
+names(females.data)[2] <- "SITE"
+names(females.data)[1]<- "CODE"
+
+chicks.data <- chicks.data[,c(1,25,3:24,26,27)] #select only pop in letters not numbers
+names(chicks.data)[2] <- "SITE"
+names(chicks.data)[1]<- "CODE"
+
+#no coordinates for Lauttasuo (adults)
+# both in adults and chicks, some have missing locations and thus missing coordinates
+
+### Change missing data to 0 for GenAIEx 
+males.data[is.na(males.data)] <- 0
+males.data[(males.data == -9)] <- 0
+
+females.data[is.na(females.data)] <- 0
+females.data[(females.data == -9)] <- 0
+
+chicks.data[is.na(chicks.data)] <- 0
+chicks.data[(chicks.data == -9)] <- 0
+
+summary(as.factor(males.data$SITE))
+summary(as.factor(females.data$SITE))
+summary(as.factor(chicks.data$SITE))
+
+#combine adult data for sex-biased dispersal tests
+males.df <- males.data %>% add_column(sex = "M")
+females.df <- females.data %>% add_column(sex = "F")
+adults.data <- rbind(males.df, females.df)
+
+## Then format exactly as GenAIEx requires in excel manually
+# A1: NO OF LOCI, B2: NO OF SAMPLES, C1: NO OF POPULATIONS, D1-N1: SIZE OF EACH POPULATION
+# A2: optional title, D2: F2: pop labels
+# headers A3:N3: CODE, SITE, LOCUS1, LOCUS 1, LOCUS 2, LOCUS 2, [EMPTY COL], X, Y
+# Data starts on C4 with microsats
+
+write.table(males.data, file = "analyses/genalex/msat_males_withcoord.csv",quote=F, row.names=F)
+write.table(females.data, file = "analyses/genalex/msat_females_withcoord.csv",quote=F, row.names=F)
+write.table(chicks.data, file = "analyses/genalex/msat_chicks_withcoord.csv",quote=F, row.names=F)
+write.table(adults.data, file = "analyses/genalex/msat_adults_withcoord.csv",quote=F, row.names=F)
+
+
+
+
+
 
