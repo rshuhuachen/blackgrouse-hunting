@@ -56,7 +56,7 @@ allHWE.t[,c(2:15)]<- round(allHWE.t[,c(2:15)], 2)
 head(allHWE.t)
 View(allHWE.t[c(seq(from=4, by = 5, to = 59)),])
 
-write.table(allHWE.t, "tables/HWE_all.csv", quote=F, row.names = F)
+write.table(allHWE.t, "tables/HWE_all.csv", quote=F)
 
 # locus names: BG10, BG16, BG18, BG15, BG19, BG6, TTT1, TTD2, TTD3, TUD6, TUT3a, TUT4, BG20, TTT2
 #exclude locus 1, and 13 as FDR-corrected q-values indicate violation
