@@ -11,10 +11,10 @@ In this repository, you will find the scripts used for the data analysis conduct
 4. Calculating sMLH for adults and chicks and model the effect of hunting on sMLH
 5. Analyzing migration rates by modelling the effect of hunting on emigration and immigration
 6. Plotting the figures from the manuscript
-
+7. Additional analysis repeating the above with a subset of the chick data, selecting one chick per brood at random only
 
 ## Data and scripts
-All data can be found within the /data directory, where raw and filtered genotypes can be found in various formats (stru format and unsplit csv files), pairwise Fst values, spatial autocorrelation autput, migration analysis output from BA3 (Bayesass), STRUCTURE results (partly), and sMLH per individual. To get a better description for each data file, please follow the scripts 1-5 in order.
+All data can be found within the /data directory, where raw and filtered genotypes can be found in different formats (.stru format and unsplit .csv files), pairwise Fst values, spatial autocorrelation output (analysis conducted in GenAlEx, an Excel add-in), migration analysis output from BA3 (Bayesass), STRUCTURE results, and sMLH per individual. All scripts can be found in the /scripts directory, where scripts have to be followed in order.
 
 Parts of scripts 1 and 3 are based on the workflow for "The genetic legacy of extreme exploitation in a polar vertebrate", Paijmans et al. Sci Rep 10, 5089 (2020) which can be found at https://github.com/apaijmans/AFS_genetic_legacy.
 
