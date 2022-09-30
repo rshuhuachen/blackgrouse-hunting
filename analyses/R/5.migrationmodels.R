@@ -48,21 +48,22 @@ write.table(ba3.all, "data/migrationanalysis/data_all_ba3.txt",
             col.names = T, row.names = F, sep = " ", quote = F)
 
 #### Running BA3 ####
-system(paste0("mkdir ", getwd(), "/data/migrationanalysis/BA3runs/run1")) #make directory per run
-system(paste0("mkdir ", getwd(), "/data/migrationanalysis/BA3runs/run2"))
-system(paste0("mkdir ", getwd(), "/data/migrationanalysis/BA3runs/run3"))
-system(paste0("mkdir ", getwd(), "/data/migrationanalysis/BA3runs/run4"))
-system(paste0("mkdir ", getwd(), "/data/migrationanalysis/BA3runs/run5"))
+#make directory per run
+system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run1")) 
+system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run2"))
+system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run3"))
+system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run4"))
+system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run5"))
 
 #5 runs with 5 different random seeds
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt /data/migrationanalysis/data_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o run2.txt /data/migrationanalysis/data_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt /data/migrationanalysis/data_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o run4txt /data/migrationanalysis/data_ba3.txt") #change pathname to BA3, random seed generated
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt /data/migrationanalysis/data_ba3.txt") #change pathname to BA3, random seed generated
+system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 
+system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o run2.txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 
+system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 
+system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o run4txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 
+system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 
 
 #### Compare all 10 runs ####
-temp <- list.files(path = "data/migrationanalysis/BA3runs/", pattern = ".txt", full.names=T)
+temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = ".txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
 
 # formula for reshaping the dataframes

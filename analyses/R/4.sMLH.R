@@ -122,11 +122,6 @@ sMLH.all[msatsfactors] <- lapply(sMLH.all[msatsfactors], as.factor)
 sMLH.all %>% filter(!is.na(sex)) %>%ggplot(aes(x = age, y = sMLH, col = sex)) + 
   geom_boxplot() + theme_classic ()
 
-#### Or: load in sMLH ####
-#save(sMLH.all, file = "data/cleandata/sMLH.all.RData")
-load(file = "data/cleandata/sMLH.all.RData")
-sMLH.all$hunt <- relevel(as.factor(sMLH.all$hunt), ref = "unhunted")
-
 #### Modelling sMLH ####
 #load in density data
 dens <- read.csv("data/details/DensityLekYear.csv")
@@ -137,25 +132,11 @@ dens$year <- as.factor(dens$year)
 sMLH.all <- left_join(sMLH.all, dens[,c(1,2,4)], by = c("pop" = "site", "year" = "year"))
 sMLH.all <- unique(sMLH.all)
 
-# first divide up again in female adults, male adults and chicks
-sMLH.males <- subset(sMLH.all, sex == "m" & age == "adult")
-sMLH.females <- subset(sMLH.all, sex == "f" & age == "adult")
-sMLH.chicks <- subset(sMLH.all, age == "chick")
-sMLH.adults <- subset(sMLH.all, age != "chick")
+sMLH.all$hunt <- relevel(as.factor(sMLH.all$hunt), ref = "unhunted")
 
-## Look at distribution sMLH ##
-
-ggplot(sMLH.males, aes(x=sMLH)) + geom_histogram(bins=13) +theme_classic() +
-  labs(title = "Histogram of sMLH for adult males")
-
-ggplot(sMLH.females, aes(x=sMLH)) + geom_histogram(bins=13) +theme_classic() +
-  labs(title = "Histogram of sMLH for adult females")
-
-ggplot(sMLH.chicks, aes(x=sMLH)) + geom_histogram(bins=13) +theme_classic() +
-  labs(title = "Histogram of sMLH for chicks")
-
-ggplot(sMLH.all, aes(x=sMLH)) + geom_histogram(bins=13) +theme_classic() +
-  labs(title = "Histogram of sMLH for all individuals")
+#### Or: load in sMLH ####
+save(sMLH.all, file = "data/cleandata/sMLH.all.RData")
+load(file = "data/cleandata/sMLH.all.RData")
 
 #### Modelling sMLH with density ####
 

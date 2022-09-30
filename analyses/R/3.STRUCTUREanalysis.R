@@ -8,10 +8,10 @@ library(pophelper)
 #### using the workflow below
 
 ##### Running structure for males #####
-all <- fread("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru")
-infile <- "data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru"
+all <- fread("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru")
+infile <- "/data/home/rchen/Hunting/blackgrouse-hunting/data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru"
 # system("mkdir data/Results_stru_males")
-outpath <- "data/structure/results/"
+outpath <- "/data/home/rchen/Hunting/blackgrouse-hunting/analyses/structure/results/"
 
 # job matrix and write to job file
 nrep <- 10
@@ -29,7 +29,7 @@ pop <- "1,2,3,4,5,6,7,8,9,10,11,12" #number of pops in the file
 hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var, rep(burnin, nrep * up_to_k),
                       rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
 
-write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), file = "data/structure/structure_jobs.txt")
+write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), file = "analyses/structure/structure_jobs.txt")
 
 # file path to structure
 
@@ -37,29 +37,22 @@ STR_path='/usr/local/bin/'
 
 # Run Parallel Structure
 
-# system("mkdir Results_adults")
-
-# Run structure (from terminal, do not run this last part in Rstudio)
-
-
 ParallelStructure::parallel_structure(structure_path=STR_path, 
-                                      joblist='data/structure/structure_jobs.txt', 
+                                      joblist='/data/home/rchen/Hunting/blackgrouse-hunting/analyses/structure/structure_jobs.txt', 
                                       n_cpu=45, infile=infile,
                                       outpath=outpath,
                                       numinds = nrow(all)/2,
                                       numloci=ncol(all)-2,
-                                      noadmix = 0, alpha = 1.0,freqscorr=1,lambda = 1,
-                                      printqhat=1,plot_output=0,onerowperind=0, locprior = 0)
+                                      noadmix = 0, alpha = 1.0, freqscorr=1, lambda = 1,
+                                      printqhat=1, plot_output=0, onerowperind=0, locprior = 0)
 
 # use admixture model (noadmix = 0), not using prior information regarding location (locprior =0) 
 # not using prior population info (usepopinfo = 0)
-# Having multiple family members in the sample also violates the model assumptions which could lead to overestimation
-# of K, but currently we do have multiple family members. Despite that, K=1 is still optimum
 
 #### Plotting barcharts ####
 
 ## All: best log likelihood K = , highest delta K = 
-path_to_structure_out <- "data/structure/results/Run_files/"
+path_to_structure_out <- "analyses/structure/results/Run_files/"
 path_to_struc_file <- "data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru"
 all_files <- list.files(path_to_structure_out, pattern = "^results")
 struc_out_paths <- paste0(path_to_structure_out, all_files)

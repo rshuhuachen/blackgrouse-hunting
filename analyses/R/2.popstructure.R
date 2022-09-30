@@ -92,14 +92,14 @@ measures.all$locus <- as.factor(measures.all$locus)
 measures.all$pop <- as.factor(measures.all$pop)
 measures.all$hunt <- as.factor(measures.all$hunt)
 
-Ho_model <- lmerTest::lmer(Hobs ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13")) # excluding BG20
-Ho_model_null <- lmerTest::lmer(Hobs ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L13")) # excluding BG20
+Ho_model <- lmerTest::lmer(Hobs ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L12")) # excluding BG20
+Ho_model_null <- lmerTest::lmer(Hobs ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L12")) # excluding BG20
 
-He_model <- lmerTest::lmer(Hexp ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
-He_model_null <- lmerTest::lmer(Hexp ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+He_model <- lmerTest::lmer(Hexp ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L12"))
+He_model_null <- lmerTest::lmer(Hexp ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L12"))
 
-Ar_model <- lmerTest::lmer(Ar ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
-Ar_model_null <- lmerTest::lmer(Ar ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L13"))
+Ar_model <- lmerTest::lmer(Ar ~ hunt + (1|locus) + (1|pop), data = subset(measures.all, locus != "L12"))
+Ar_model_null <- lmerTest::lmer(Ar ~ (1|locus) + (1|pop), data = subset(measures.all, locus != "L12"))
 
 #with BG20
 # Ho_model <- lmerTest::lmer(Hobs ~ hunt + (1|locus) + (1|pop), data = measures.all) # excluding BG20
@@ -174,5 +174,5 @@ pairwise.fst.all <- pairwise.fst.all %>% mutate(Sig = case_when(
   UL > 0 & LL < 0 ~ "NS",
   UL < 0 & LL < 0 ~ "" ))
 
-write.csv(pairwise.fst.all, "data/tables/Pairwise_Fst_all.csv", row.names = F, quote=F)
+write.csv(pairwise.fst.all, "tables/Pairwise_Fst_all.csv", row.names = F, quote=F)
 
