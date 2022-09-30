@@ -2,7 +2,7 @@
 
 library(data.table); library(ParallelStructure)
 library(dplyr); library(tidyr); library(stringr)
-library(pophelper)
+library(pophelper); library(ggthemr)
 
 #### NB: the raw results from structre are not uploaded, but can be fully recreated
 #### using the workflow below
@@ -49,11 +49,19 @@ ParallelStructure::parallel_structure(structure_path=STR_path,
 # use admixture model (noadmix = 0), not using prior information regarding location (locprior =0) 
 # not using prior population info (usepopinfo = 0)
 
+#### Analysing output ####
+
+source("analyses/R/STRUCTURE_functions.R")
+make_directories("analyses/structure/results/")
+load_and_clumpp("analyses/structure/results/Run_files/")
+load_and_K("analyses/structure/results/Run_files/")
+both_k(read.csv("analyses/structure/results/Run_files/output.csv")) # lnk = 4, deltak = 2
+
 #### Plotting barcharts ####
 
 ## All: best log likelihood K = , highest delta K = 
-path_to_structure_out <- "analyses/structure/results/Run_files/"
-path_to_struc_file <- "data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru"
+path_to_structure_out <- "analyses/structure/results/"
+path_to_struc_file <- "data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru"
 all_files <- list.files(path_to_structure_out, pattern = "^results")
 struc_out_paths <- paste0(path_to_structure_out, all_files)
 slist <- readQ(files=struc_out_paths, filetype = "structure")
@@ -80,10 +88,14 @@ pops <- data.frame(pops[seq(1, nrow(pops), 2)])
 colnames(pops) <- "location"
 pops$location <- as.character(pops$location)
 
-plotQ(qlist=(slist)[c(1101, 201)], splab=spnames[c(1101, 201)], imgoutput = "join", grplab=pops,ordergrp = TRUE,sortind = "all",
-      clustercol=c("#1B9E77", "#D95F02", "#E6AB02", "#7570B3", "#E7298A", "#66A61E",
-                   "#56445D", "#1E3888", "#DDF9C1", "#772D8B", "#780116", "#E9FFF9"),
-      outputfilename = "K9_K11_males", exportpath = "data/plots/", sharedindlab = F,
-      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, titlelab = "a) Structure Barplot for males for K = 9 and K = 11",
+#choose K = 4 and K = 2
+plotQ(qlist=(slist)[c(61, 41)], splab=spnames[c(61, 41)], imgoutput = "join", grplab=pops,ordergrp = TRUE,
+      sortind = "all",
+      clustercol=c("#1B9E77", "#D95F02", "#E6AB02", "#7570B3"),
+      outputfilename = "K4_K2_all", exportpath = "figures", sharedindlab = F,
+      panelratio = c(1.8,1.2), font = "Arial", grplabjust = 0.4, 
+      titlelab = "a) Structure Barplot for K = 4 and K = 2",
       grplabangle = 25, panelspacer = 0.04, grplabsize = 2, splabsize = 6, showtitle = T, titlesize = 8, titlespacer = 2)
 
+, "#E7298A", "#66A61E",
+"#56445D", "#1E3888", "#DDF9C1", "#772D8B", "#780116", "#E9FFF9"

@@ -55,6 +55,7 @@ load_and_K <- function(path_to_structure_out){
   system(paste0("mv ", path_to_structure_out, "outputclumpp/evannoMethodStructure* ", path_to_structure_out, "evanno/"))
   
   em <- em
+  write.csv(em, paste0(path_to_structure_out, "output.csv"))
   
 }
 

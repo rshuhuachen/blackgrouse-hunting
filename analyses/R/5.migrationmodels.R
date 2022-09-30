@@ -44,7 +44,7 @@ ba3.all <- left_join(ba3.all.a, ba3.all.b, by = c("indivID", "popID", "locID"))
 
 head(ba3.all)
 
-write.table(ba3.all, "data/migrationanalysis/data_all_ba3.txt",
+write.table(ba3.all, "analyses/migrationanalysis/data_all_ba3.txt",
             col.names = T, row.names = F, sep = " ", quote = F)
 
 #### Running BA3 ####
@@ -56,6 +56,7 @@ system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run4"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run5"))
 
 #5 runs with 5 different random seeds
+pathba3 <- ""
 system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 
 system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o run2.txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 
 system(paste0("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt ", getwd(), "/data/migrationanalysis/data_ba3.txt")) 

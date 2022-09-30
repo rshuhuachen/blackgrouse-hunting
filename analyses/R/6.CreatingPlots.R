@@ -233,13 +233,11 @@ ggsave(plot = immmigration.plot.poster, "data/figures/Immigration_forposter.png"
 
 #### Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
 
-load("data/structure/ks_ad_fem.R")
-load("data/structure/ks_chick_2.R")
-load("data/structure/ks_ad_male.R")
+ks_all <- read.csv("analyses/structure/results/Run_files/output.csv")
 
 #### plotting K vs mean log likelihood
 
-ks_fem <- ggplot(ks_ad_fem, aes(x = k, y = elpdmean)) +
+ks_all_plot <- ggplot(ks_all, aes(x = k, y = elpdmean)) +
   geom_point() + geom_line()+ ylab("LnPr(X|k)") +
   scale_x_continuous(name = "k", 
                      breaks = c(1:12),
@@ -256,40 +254,7 @@ ks_fem <- ggplot(ks_ad_fem, aes(x = k, y = elpdmean)) +
         plot.title = element_text(size = 22)) + 
   labs(title = "(b)") 
 
-ks_male <- ggplot(ks_ad_male, aes(x = k, y = elpdmean)) +
-  geom_point() + geom_line()+ ylab("LnPr(X|k)") +
-  scale_x_continuous(name = "k", 
-                     breaks = c(1:12),
-                     labels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")) +
-  geom_errorbar(aes(ymin = elpdmin, ymax = elpdmax), width = 0.1, col = "gray45") +
-  scale_y_continuous(breaks = c(-43000, -41000, -39000),
-                     labels = c("-43K", "-41K", "-39K"))+
-  theme_classic()+
-  theme(text = element_text(family = "Arial"),
-        axis.title = element_text(face = "bold"),
-        axis.title.x = element_text(size = 22),
-        axis.title.y = element_text(size = 22),
-        axis.text = element_text(size = 22),
-        plot.title = element_text(size = 22))+ 
-  labs(title = "(a)")
-
-ks_chick <- ggplot(ks_chick, aes(x = k, y = elpdmean)) +
-  geom_point() + geom_line()+ ylab("LnPr(X|k)") +
-  geom_errorbar(aes(ymin = elpdmin, ymax = elpdmax), width = 0.1, col = "gray45") +
-  scale_y_continuous(breaks = c(-4000000, -2000000, 0),
-                     labels = c("-4M", "-2M", "0"))+
-  theme_classic() +
-  theme(text = element_text(family = "Arial"),
-        axis.title = element_text(face = "bold"),
-        axis.title.x = element_text(size = 22),
-        axis.title.y = element_text(size = 22),
-        axis.text = element_text(size = 22),
-        plot.title = element_text(size = 22))+ 
-  labs(title = "(c)")
-
-ks_male
-ks_fem
-ks_chick
+ks_all_plot
 
 library(cowplot); library(gridExtra)
 png("data/figures/K_all.png", 
