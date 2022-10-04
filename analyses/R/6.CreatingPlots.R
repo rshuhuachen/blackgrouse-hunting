@@ -17,14 +17,9 @@ theme_set(theme_classic())
 #### Figure 2: heatmaps pairwise Fst + correlograms spatial autocorrelation ####
 
 ### First: heatmap
-pairwise.fst <- read.csv("data/tables/Pairwise_Fst_all.csv")
+pairwise.fst <- read.csv("tables/Pairwise_Fst_all.csv")
 
-pairwise.fst.males <- read.csv("data/tables/Pairwise_Fst_males.csv")
-pairwise.fst.females <- read.csv("data/tables/Pairwise_Fst_females.csv")
-pairwise.fst.chicks <- read.csv("data/tables/Pairwise_Fst_chicks.csv")
-
-#change the negative values to 0 in females
-pairwise.fst.females$Fst[which (pairwise.fst.females$Fst < 0)] <- 0
+#change the negative values to 0 
 pairwise.fst$Fst[which (pairwise.fst$Fst < 0)] <- 0
 
 # add abbreviation to data
@@ -34,9 +29,6 @@ sitenames[1]
 sitenames$abb <- c("KOS", "KUM", "LAU", "LEH", "NYR", "PAL", "PIH", "PIL", "PIS", "SAA", "TEE", "UTU")
 str(sitenames)
 
-pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.x" = "pop_num"))
-pairwise.fst.chicks <- left_join(pairwise.fst.chicks, sitenames[,c(1,6,2)], by = c("site.y" = "pop_num"))
-
 pairwise.fst <- left_join(pairwise.fst, sitenames[,c(1,6,2)], by = c("site.x" = "pop_num"))
 pairwise.fst <- left_join(pairwise.fst, sitenames[,c(1,6,2)], by = c("site.y" = "pop_num"))
 
@@ -45,11 +37,11 @@ pairwise.fst.fig <- ggplot(pairwise.fst, aes(abb.x, abb.y, fill = Fst)) + geom_t
   scale_fill_gradientn(colors = mypalette3, limits = c(0,0.02)) + 
   geom_text(aes(label = Sig), size = 8)+
   theme(text = element_text(family = "Arial", size = 22),
-        axis.text.x = element_text(angle = 90, size = 22,
+        axis.text.x = element_text(angle = 90, size = 26,
                                    face = c("bold", "plain", "bold", "plain", "plain",
                                             "bold", "bold", "plain", "bold",
                                             "plain", "plain")), 
-        axis.text.y = element_text(size = 22, 
+        axis.text.y = element_text(size = 26, 
                                    face = c("plain", "bold", "plain", "plain",
                                             "bold", "bold", "plain", "bold",
                                             "plain", "plain", "bold")),
@@ -60,22 +52,21 @@ pairwise.fst.fig <- ggplot(pairwise.fst, aes(abb.x, abb.y, fill = Fst)) + geom_t
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         legend.position = c(0.8, 0.3)) +
-  ggtitle('(a) Fst adults and unrelated chicks combined') 
+  ggtitle('(a) Fst heatmap') 
 
-ggsave(pairwise.fst.fig, filename="data/figures/Fst_all.png")
+ggsave(pairwise.fst.fig, filename="figures/Fst_all.png")
 
 ### Second - correlograms ###
-spatial <- read_excel("data/tables/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
-
+spatial <- read_excel("tables/SpatialAutocor_04.10.22.xlsx", sheet = "ForR")
 
 ### Males - spatial
-spatial %>% filter(Who == "Male") %>% ggplot(aes(x = What)) + 
+males.spatial <- spatial %>% filter(Who == "Male") %>% ggplot(aes(x = What)) + 
   geom_line(aes(y = r), col = "#8989D0", size = 1.5) + theme_classic() + 
   geom_hline(yintercept = 0, col = "black")+
   geom_ribbon(aes(ymax = U, ymin = L), fill = "#8989D0", alpha = 0.5)+
   geom_errorbar(aes(y = r, ymin = r-Le, ymax = r+Ue), width=1, 
                 size=1.5, color="black", stat = "identity")+
-  ylim(-0.03, 0.035) +
+  ylim(-0.05, 0.04) +
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
   theme(text = element_text(family = "Arial", size = 14),
@@ -83,15 +74,18 @@ spatial %>% filter(Who == "Male") %>% ggplot(aes(x = What)) +
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
         axis.title.x = element_text(size = 30), 
-        axis.title.y = element_text(size = 30)) 
+        axis.title.y = element_text(size = 30)) +
+  ggtitle('(b) Correlogram adult males') 
+
+ggsave(males.spatial, file="figures/Correlogram_males.png")
 
 ### Females - spatial
 
-spatial %>% filter(Who == "Females") %>% ggplot(aes(x = What)) + 
+females.spatial <- spatial %>% filter(Who == "Females") %>% ggplot(aes(x = What)) + 
   geom_line(aes(y = r), col = "#8989D0", size = 1.5) + theme_classic() + geom_hline(yintercept = 0, col = "black")+
   geom_ribbon(aes(ymax = U, ymin = L), fill = "#8989D0", alpha = 0.5)+
   geom_errorbar(aes(y = r, ymin = r-Le, ymax = r+Ue), width=1, size=1.5, color="black", stat = "identity")+
-  ylim(-0.03, 0.035) +
+  ylim(-0.05, 0.04) +
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
   theme(text = element_text(family = "Helvetica", size = 14),
@@ -99,15 +93,17 @@ spatial %>% filter(Who == "Females") %>% ggplot(aes(x = What)) +
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
         axis.title.x = element_text(size = 30), 
-        axis.title.y = element_text(size = 30))
+        axis.title.y = element_text(size = 30))+
+  ggtitle('(c) Correlogram adult females') 
 
+ggsave(females.spatial, file="figures/Correlogram_females.png")
 
 ### Chicks - spatial
-spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) + 
+chicks.spatial <- spatial %>% filter(Who == "Unrelated_chicks") %>% ggplot(aes(x = What)) + 
   geom_line(aes(y = r), col = "#8989D0", size = 1.5) + theme_classic() + geom_hline(yintercept = 0, col = "black")+
   geom_ribbon(aes(ymax = U, ymin = L), fill = "#8989D0", alpha = 0.5)+
   geom_errorbar(aes(y = r, ymin = r-Le, ymax = r+Ue), width=1, size=1.5, color="black", stat = "identity")+
-  ylim(-0.03, 0.035) +
+  ylim(-0.05, 0.04) +
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
   theme(text = element_text(family = "Arial", size = 14),
@@ -115,7 +111,20 @@ spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) +
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
         axis.title.x = element_text(size = 30), 
-        axis.title.y = element_text(size = 30)) 
+        axis.title.y = element_text(size = 30)) +
+  ggtitle('(d) Correlogram unrelated chicks') 
+
+ggsave(chicks.spatial, file="figures/Correlogram_chicks.png")
+
+png("figures/Fst_Correlograms.png", 
+    width = 1500, height = 1000, units = "px")
+gA <- ggplotGrob(pairwise.fst.fig)
+gB <- ggplotGrob(males.spatial)
+gD <- ggplotGrob(females.spatial)
+gE <- ggplotGrob(chicks.spatial)
+grid::grid.newpage()
+grid::grid.draw(cbind(rbind(gA, gD), rbind(gB, gE)))
+dev.off()
 
 ### Figure 3: boxplots migration rates ####
 male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")

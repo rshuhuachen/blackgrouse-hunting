@@ -7,6 +7,7 @@
 library(data.table); library(tidyverse); library(hierfstat); 
 library(plot.matrix); library(lme4); library(adegenet); library(forcats)
 library(ape); library(readxl); library(tibble)
+
 all.raw <- read.structure ("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru", n.ind = 2078, n.loc = 13, onerowperind = F,
                        col.lab = 1, col.pop = 2, col.others = NULL,
                        row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
@@ -222,6 +223,12 @@ males.df <- males.data %>% add_column(sex = "M")
 females.df <- females.data %>% add_column(sex = "F")
 adults.data <- rbind(males.df, females.df)
 
+#have to take out all rows with missing data
+adults.sexbias <- adults.data[,c(1,29,3:26)]
+adults.sexbias[(adults.sexbias == 0)] <- NA
+adults.sexbias <- adults.sexbias[,-c(15,16,25,26)] #take out two loci with lots of missing data 
+adults.sexbias.complete <- adults.sexbias[complete.cases(adults.sexbias),] #1861 N with complete cases
+
 ## Then format exactly as GenAIEx requires in excel manually
 # A1: NO OF LOCI, B2: NO OF SAMPLES, C1: NO OF POPULATIONS, D1-N1: SIZE OF EACH POPULATION
 # A2: optional title, D2: F2: pop labels
@@ -232,6 +239,7 @@ write.table(males.data, file = "analyses/genalex/msat_males_withcoord.csv",quote
 write.table(females.data, file = "analyses/genalex/msat_females_withcoord.csv",quote=F, row.names=F)
 write.table(chicks.data, file = "analyses/genalex/msat_chicks_withcoord.csv",quote=F, row.names=F)
 write.table(adults.data, file = "analyses/genalex/msat_adults_withcoord.csv",quote=F, row.names=F)
+write.table(adults.sexbias.complete, file = "analyses/genalex/msat_adults_sexbias_withcoord.csv",quote=F, row.names=F)
 
 
 
