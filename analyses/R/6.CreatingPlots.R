@@ -127,25 +127,17 @@ grid::grid.draw(cbind(rbind(gA, gD), rbind(gB, gE)))
 dev.off()
 
 ### Figure 3: boxplots migration rates ####
-male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
-female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
-
-names(female_run5_clean) == names(male_run5_clean)
-female_run5_clean$sex <- "Female"
-male_run5_clean$sex <- "Male"
-
-#combine in one df
-migration_both <- rbind(male_run5_clean, female_run5_clean)
+run5_clean <- read.csv("analyses/migrationanalysis/run5_clean.csv")
 
 #change levels
-migration_both$hunt_in <- relevel(as.factor(migration_both$hunt_in), ref = "unhunted")
-migration_both$hunt_out <- relevel(as.factor(migration_both$hunt_out), ref = "unhunted")
+run5_clean$hunt_in <- relevel(as.factor(run5_clean$hunt_in), ref = "unhunted")
+run5_clean$hunt_out <- relevel(as.factor(run5_clean$hunt_out), ref = "unhunted")
 
 #first, exclude the 'non-migration rates' which are those where pop in = pop out
-migration_both <- subset(migration_both, m_in != m_out)
+run5_clean <- subset(run5_clean, m_in != m_out)
 
 # plot emigration rates 
-emigration.plot <- ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) + 
+emigration.plot <- ggplot(run5_clean, aes(x = hunt_out, y = migration_ESSc, fill = "#57939a")) + 
   geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
   labs(title = "(a) Emigration rates") + 
   ylab("Migration rate")+
@@ -155,40 +147,13 @@ emigration.plot <- ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, 
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)))+
-  scale_fill_manual(values = c("Male" = "#57939a", #44A1A0
-                               "Female" = "#be4d5a"),#AF9BB6
-                    labels=c("Male", "Female"))+
-  guides(fill = guide_legend("Sex")) 
-
-library(ggsignif)
-
-emigration.plot.poster <- ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) + 
-  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
-  ylab("Migration rate")+
-  theme(text = element_text(family = "Arial", size = 36),
-        legend.position = "none",
-        plot.title = element_text(size = 38),
-        axis.title.x = element_blank(),
-        axis.text = element_text(colour = "black"),
-        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)))+
-  scale_fill_manual(values = c("Male" = "#44A1A0", #44A1A0
-                               "Female" = "#AF9BB6"),#AF9BB6
-                    labels=c("Male", "Female"))+ 
-  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank() #remove minor gridlines
-  ) + geom_text(x = 1.5, y = 0.028, label = "*", size = 10) + geom_segment(x = 1, xend = 2, y = 0.025, yend = 0.025)+
-  geom_segment(x=1, xend = 1, y = 0.025, yend = 0.024)+geom_segment(x=2, xend = 2, y = 0.025, yend = 0.024)
-
-emigration.plot
-emigration.plot.poster
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
+        legend.position = "none")+
+  scale_fill_manual(values=c("#57939a"))
 
 #plot immigration rates
 
-immmigration.plot <- ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) + 
+immmigration.plot <- ggplot(run5_clean, aes(x = hunt_in, y = migration_ESSc, fill = "#be4d5a")) + 
   geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
   labs(title = "(b) Immigration rates") + 
   ylab("Migration rate")+
@@ -198,49 +163,23 @@ immmigration.plot <- ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc,
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)))+
-  scale_fill_manual(values = c("Male" = "#57939a",
-                               "Female" = "#be4d5a"),
-                    labels=c("Male", "Female"))+
-  guides(fill = guide_legend("Sex"))
-
-immmigration.plot.poster <- ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) + 
-  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
-  ylab("Migration rate")+
-  theme(text = element_text(family = "Arial", size = 36),
-        legend.text = element_text(size = 28),
-        legend.title = element_text(size = 28),
-        axis.text = element_text(colour = "black"),
-        legend.key.size = unit(1, 'cm'),
-        plot.title = element_text(size = 38),
-        axis.title.x = element_blank(),
-        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)))+
-  scale_fill_manual(values = c("Male" = "#44A1A0",
-                               "Female" = "#AF9BB6"),
-                    labels=c("Male", "Female"))+
-  guides(fill = guide_legend("Sex"))+
-  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent'))+ #transparent legend bg )
-  geom_text(x = 1.5, y = 0.028, label = "*", size = 10) + geom_segment(x = 1, xend = 2, y = 0.025, yend = 0.025)+
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
+        legend.position = "none")+
+  scale_fill_manual(values = c("#be4d5a"))+geom_text(x = 1.5, y = 0.028, label = "*", size = 10) + geom_segment(x = 1, xend = 2, y = 0.025, yend = 0.025)+
   geom_segment(x=1, xend = 1, y = 0.025, yend = 0.024)+geom_segment(x=2, xend = 2, y = 0.025, yend = 0.024)
 
-immmigration.plot
-immmigration.plot.poster
+png("figures/Migration.png", 
+    width = 1100, height = 550, units = "px")
+gA <- ggplotGrob(emigration.plot)
+gB <- ggplotGrob(immmigration.plot)
+grid::grid.newpage()
+grid::grid.draw(cbind(gA, gB))
+dev.off()
 
-ggsave(plot = emigration.plot, "data/figures/Emigration.png",
+ggsave(plot = emigration.plot, "figures/Emigration.png",
        width = 30, height = 20, units = c("cm"))
 
-ggsave(plot = immmigration.plot, "data/figures/Immigration.png",
-       width = 30, height = 20, units = c("cm"))
-
-ggsave(plot = emigration.plot.poster, "data/figures/Emigration_forposter.png",
-       width = 30, height = 20, units = c("cm"))
-
-ggsave(plot = immmigration.plot.poster, "data/figures/Immigration_forposter.png",
+ggsave(plot = immmigration.plot, "figures/Immigration.png",
        width = 30, height = 20, units = c("cm"))
 
 #### Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
