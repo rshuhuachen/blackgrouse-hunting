@@ -80,6 +80,7 @@ system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run4"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run5"))
 
 #5 runs with 5 different random seeds
+
 #(1) migration rates; (2) individual migrant ancestries; (3) allele frequencies; (4) inbreeding coefficients; (5) missing genotypes
 pathba3 <- "/Users/vistor/Documents/Work/Bielefeld/PhD/Software/BA3-migration/" #path to BA3
 system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
