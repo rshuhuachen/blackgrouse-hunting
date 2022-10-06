@@ -22,9 +22,9 @@ pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
 pops[1,1] <- "Koskenpää"
 pops[5,1] <- "Nyrölä"
 
-males.data <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv")
-females.data <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv")
-chicks.data <- fread("data/cleandata/Unsplit.microsat.unrelated.chicks.noLOCUS1+13+14.csv")
+# males.data <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv")
+# females.data <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv")
+# chicks.data <- fread("data/cleandata/Unsplit.microsat.unrelated.chicks.noLOCUS1+13+14.csv")
 
 #### Summary statistics ####
 
@@ -33,7 +33,6 @@ basicstat.all <- basic.stats(all.raw, diploid = TRUE, digits = 2)
 allelic.richness.all <- allelic.richness(all.raw, diploid = TRUE)
 
 #Ar
-allelic.richness.all
 allelic.richness.all.df <- as.data.frame(allelic.richness.all$Ar)
 
 #get mean Ho and Hx per pop
