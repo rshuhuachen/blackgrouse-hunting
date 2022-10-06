@@ -9,9 +9,9 @@ output:
 ---
 ---
 
-This document contains all R-code used in the workflow for the manuscript *"Effects of hunting on genetic diversity, inbreeding and dispersal in Finnish black grouse (Lyrurus tetrix)"* by Rebecca Shuhua Chen, Carl Soulsbury, Christophe Lebigre, Kees van Oers and Joseph Hoffman (in prep). The raw data can be found on Zenodo as well as in the public GitHub repository together with full R scripts and processed datafiles. Please contact me at rebecca.chen@uni-bielefeld.de for any questions.
+This document contains all R-code used in the workflow for the manuscript *"Effects of hunting on genetic diversity, inbreeding and dispersal in Finnish black grouse (Lyrurus tetrix)"* by Rebecca Shuhua Chen, Carl Soulsbury, Christophe Lebigre, Kees van Oers and Joseph Hoffman (in review). The raw data can be found in the public GitHub repository together with full R scripts and processed datafiles. Please contact me at rebecca.chen@uni-bielefeld.de for any questions.
 
-Within this markdown file, we follow the same order of analyses as described in the Materials and Methods. However, not all analyses are executed through R, and other softwares were used in combination with our workflow in R to collect all results as presented in the manuscript.
+Within this markdown file, we follow the same order of analyses as described in the Materials and Methods. However, not all analyses are executed in R, and other softwares were used in combination with our workflow in R to collect all results presented in the manuscript.
 
 ---
 
@@ -29,10 +29,8 @@ library(RColorBrewer); library(extrafont); library(devtools);library(gridExtra)
 
 # Data
 
-## Adults
 Raw datasheets are provided in three different formats: 1) unsplit genotypes
-with one row per individual, 2) STRUCTURE (.stru) datafiles with two consecutive rows 
-per individual, one row per allele. In both these files,
+with one row per individual, 2) STRUCTURE (.stru) datafiles with two consecutive rows per individual, one row per allele. In both these files,
 populations are coded as integers. Thirdly, a full, easy to read .RData can be 
 found including all details on the sites and hunted status, as well as sex.
 
@@ -42,31 +40,29 @@ hunted.ad$site <- as.factor(hunted.ad$site)
 summary(hunted.ad[,c(3,7,8,9)])
 
 #structure file to summarise genotypes
-all <- read.structure("data/rawdata/Microsat.adults.plus.unrelated.chicks.forstructure.stru", 
+all.raw <- read.structure("data/rawdata/Microsat.adults.plus.unrelated.chicks.forstructure.stru", 
                          n.ind = 2078, n.loc = 14, onerowperind = F,
                          col.lab = 1, col.pop = 2, col.others = NULL,
                          row.marknames = 0, NA.char = "-9", pop = NULL, 
                          sep = NULL,ask = F, quiet = TRUE) 
 
-summary(all)
+summary(all.raw)
 ```
 # Test for Hardy-Weinberg equilibrium
 
-We tested for Hardy-Weinberg in the combined dataset consisting of adults
-and unrelated chicks (one chick per brood).
+We tested for Hardy-Weinberg equilibrium in the combined dataset consisting of adults and unrelated chicks (one chick per brood).
 
-```{r hardyweinberg, warning=FALSE, message=FALSE, include=FALSE}
+```{r hardyweinberg, warning=FALSE, message=FALSE}
 
-#### Testing for Hardy-Weinberg equilibrium ####
+#### Calculate Hardy-Weinberg equilibrium ####
 
 # First all together
-allHWE.all <- pegas::hw.test(all, B = 1000) 
+allHWE.all <- pegas::hw.test(all.raw, B = 1000) 
 #B = 1000 for 1000 Monte Carlo permutations 
-
 summary(allHWE.all )
 
 # Then per population using a for loop
-allpop <- seppop(all)
+allpop <- seppop(all.raw)
 # Run loop
 allHWE = NULL
 for(i in 1:length(allpop)) {
@@ -82,6 +78,10 @@ for(i in 1:length(allpop)) {
   
 }
 
+#then we transform the resulting allpop dataframe into something readable (hidden)
+```
+```{r hidden hardyweinberg, warning=FALSE, message=FALSE, include=F}
+mypalette3 <- c("#EDEDFD","#C2C1EC","#9795DB","#6C69C9","#413DB8","#1611A7") #for later
 sites<-rep(names(allpop[1:length(allpop)]),each=5)
 allHWE <- rbind(allHWE, sites)
 allHWE <- allHWE[c(nrow(allHWE),1:(nrow(allHWE)-1)),]
@@ -93,60 +93,38 @@ allHWE.t[nums] <- lapply(allHWE.t[nums], as.numeric)
 
 allHWE.t[,c(2:15)]<- round(allHWE.t[,c(2:15)], 2)
 ```
-```{r hardyweinberg, warning=FALSE, message=FALSE, include=TRUE}
+```{r results hardyweinberg, warning=FALSE, message=FALSE, include=TRUE}
 
-#### Testing for Hardy-Weinberg equilibrium ####
+#### Results Hardy-Weinberg ####
 
 head(allHWE.t) #HWE per locus per site
 
 ```
-This table includes Hobs, Hexp, pexact, qval.FDR and qval.bon for each locus 
-in (columns) for each site (1-12). The full output of the table can be found in 
-Supplementary Table 3. We included a threshold in which a locus was excluded
-if the FDR-corrected value was lower than 0.05 in over 70% of the sites. 
-Subsequently, we exclude locus 1 and 13.
+This table includes observed heterozygosity (Hobs), expected heterozygosity (Hexp), pexact, qval.FDR and qval.bon for each locus in (columns) for each site (1-12). The full output of the table can be found in Supplementary Table 3. We included a threshold in which a locus was excluded if the FDR-corrected value was lower than 0.05 in over 70% of the sites. Subsequently, we exclude locus 1 and 13 (locus 1 is not included in the manuscript as it resulted in PCA plots for females with very unexpected patterns (erogenous clustering)), most likely due to some genotyping and/or scoring error.
 
 ---
 # Analysing population structure
 
 To investigate patterns of genetic differentiation, we calculated
-pairwise F~ST~ values in R and executed Mantel tests and spatial auto-correlation in GenAlEx 
-(Excel add-in).
-
+pairwise F~ST~ values and conducted a STRUCTURE analysis. 
 Here, we go through calculating summary statistics, constructing a PCA to
 get a grasp of the distribution of our data and identify potential outliers, 
 and calculating the pairwise F~ST~ values for adult males, adult females and 
 chicks separately.
 
 Moreover, we compare observed and expected heterozygosity as well as 
-allelic richness between hunted and unhunted sites, by modelling the effect
-of hunting on these three genetic diversity measures.
+allelic richness between hunted and unhunted sites, through modelling the effect of hunting on these three genetic diversity measures.
 
 ```{r fst, warning = FALSE, message=FALSE,fig.height=5,fig.width=8}
 
+
 #using filtered structure files excluding loci out of HWE
-males.stru <- read.structure("data/cleandata/Microsat.males.noLOCUS1+13.forstructure.stru", 
-                             n.ind = 1065, n.loc = 12, onerowperind = F,
-                             col.lab = 1, col.pop = 2, col.others = NULL,
-                             row.marknames = 0, NA.char = "-9", pop = NULL, 
-                             sep = NULL, ask = F, quiet = T)
-
-females.stru <- read.structure("data/cleandata/Microsat.females.noLOCUS1+13.forstructure.stru", 
-                               n.ind = 813, n.loc = 12, onerowperind = F,
-                               col.lab = 1, col.pop = 2, col.others = NULL,
-                               row.marknames = 0, NA.char = "-9", pop = NULL, 
-                               sep = NULL, ask = F, quiet = T)
-
-chicks.stru <- read.structure("data/cleandata/Microsat.chicks.noLOCUS1+13+14.forstructure.stru", 
-                              n.ind = 1370, n.loc = 11, onerowperind = F,
-                              col.lab = 1, col.pop = 2, col.others = NULL,
-                              row.marknames = 0, NA.char = "-9", pop = NULL, 
-                              sep = NULL, ask = F, quiet = T)
-
-all <- read.structure("data/rawdata/Microsat.all.stru", n.ind = 3248, n.loc = 14, 
-                       onerowperind = F, col.lab = 1, col.pop = 2, col.others = NULL,
-                       row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
-                       ask = F, quiet = T)
+all <- read.structure("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru", 
+                       n.ind = 2078, n.loc = 12, onerowperind = F,
+                       col.lab = 1, col.pop = 2, col.others = NULL,
+                       row.marknames = 0, NA.char = "-9", 
+                       pop = NULL, sep = NULL,
+                       ask = F, quiet = FALSE)
 
 #### Summary statistics ####
 
@@ -181,98 +159,13 @@ pca <- dudi.pca(df = x, center = TRUE, scale = FALSE, scannf = FALSE, nf = 3)
 s.class(pca$li, fac=pop(all), col=funky(15), sub = "PCA all")
 
 ```
-```{r hidden genetic diversiy, include = F, warning = F, message=F}
-pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
-pops$pop_num <- as.character(pops$pop_num)
-measures <- data.frame(pop = names(summary.by.pop), Hobs = Hobs.ls, 
-                       Hexp = Hexp.ls, Ar = colMeans(allelic.richness.all.df, na.rm = T))
-measures <- left_join(measures, pops[,c(2,3)], by = c("pop" = "pop_num"))
 
-# let's also do it including all data per locus, and model with locus as random factor
-Hobs.all <- NULL
-
-for (i in 1:length(summary.by.pop)){
-  Hobs.i <- data.frame(locus= c(names(summary.by.pop[[i]]$Hobs)),
-                       pop = names(summary.by.pop[i]),
-                       Hobs = c(summary.by.pop[[i]]$Hobs))
-  Hobs.all <- rbind(Hobs.all, Hobs.i)
-  rownames(Hobs.all) <- NULL
-}
-
-Hexp.all <- NULL
-
-for (i in 1:length(summary.by.pop)){
-  Hexp.i <- data.frame(locus= c(names(summary.by.pop[[i]]$Hexp)),
-                       pop = names(summary.by.pop[i]),
-                       Hexp = c(summary.by.pop[[i]]$Hexp))
-  Hexp.all <- rbind(Hexp.all, Hexp.i)
-  rownames(Hexp.all) <- NULL
-}
-
-Ar.all <- NULL
-
-for (i in 1:ncol(allelic.richness.all.df)){
-  Ar.i <- data.frame(locus= c(rownames(allelic.richness.all.df[i])),
-                       pop = colnames(allelic.richness.all.df[i]),
-                       Ar = c(allelic.richness.all.df[,i]))
-  Ar.all <- rbind(Ar.all, Ar.i)
-  rownames(Ar.all) <- NULL
-}
-
-measures.all <- left_join(Hobs.all, Hexp.all) %>% left_join(Ar.all) %>% left_join(pops[,c(2,3)], by = c("pop" = "pop_num"))
-
-measures.all
-measures.all$locus <- as.factor(measures.all$locus)
-measures.all$pop <- as.factor(measures.all$pop)
-measures.all$hunt <- as.factor(measures.all$hunt)
-
-```
-
-```{r Compare genetic diversity, warning = F, message=F}
-
-## First: simple t-test to compare differences in genetic diversity between 
-## hunted vs unhunted sites (where we have the mean value of all loci per site)
-
-t.test(measures$Hobs[which(measures$hunt == "hunted")], 
-       measures$Hobs[which(measures$hunt == "unhunted")])
-
-t.test(measures$Hexp[which(measures$hunt == "hunted")], 
-       measures$Hexp[which(measures$hunt == "unhunted")])
-
-t.test(measures$Ar[which(measures$hunt == "hunted")], 
-       measures$Ar[which(measures$hunt == "unhunted")])
-
-## Then, we model the effect of hunting on the three genetic diversity measures,
-## where we take each measure per locus per site and perform a likelihood
-## ratio test to assess the difference between the null and alternative model
-
-Ho_model <- lmerTest::lmer(Hobs ~ hunt + (1|locus) + (1|pop), 
-                           data = subset(measures.all, locus != "L13")) # excluding BG20
-Ho_model_null <- lmerTest::lmer(Hobs ~ (1|locus) + (1|pop), 
-                                data = subset(measures.all, locus != "L13")) # excluding BG20
-
-He_model <- lmerTest::lmer(Hexp ~ hunt + (1|locus) + (1|pop), 
-                           data = subset(measures.all, locus != "L13"))
-He_model_null <- lmerTest::lmer(Hexp ~ (1|locus) + (1|pop), 
-                                data = subset(measures.all, locus != "L13"))
-
-Ar_model <- lmerTest::lmer(Ar ~ hunt + (1|locus) + (1|pop), 
-                           data = subset(measures.all, locus != "L13"))
-Ar_model_null <- lmerTest::lmer(Ar ~ (1|locus) + (1|pop), 
-                                data = subset(measures.all, locus != "L13"))
-
-#LRT
-anova(Ho_model, Ho_model_null) # no significant difference
-anova(He_model, He_model_null) # no significant difference
-anova(Ar_model, Ar_model_null) # no significant difference
-
-```
-```{r calculate Fst, warning = F, message = F, fig.height=5,fig.width=5}
+```{r calculate Fst, warning = F, message = F}
 #### Calculate Fst ####
 
 #convert to hfstat object
 all.hfstat <- genind2hierfstat(all)
-#calculate stats
+#calculate statsf
 basicstat.all <- basic.stats(all, diploid = TRUE, digits = 2) 
 
 # per locus
@@ -287,8 +180,10 @@ head(fst.all)
 boxplot(fst.all, col=funky(nPop(all)), las=3,
         xlab="Population", ylab="Fst", main = "Pairwise Fst values per population") 
 #Bootstrap
-boot.fst.all <- boot.ppfst(all.hfstat, nboot = 1000) #confidence interval for Fst, upper triangle is upper limit, lower triangle lower limit
+boot.fst.all <- boot.ppfst(all.hfstat, nboot = 1000) 
+
 ```
+
 ```{r hidden calculate Fst, warning = F, message = F, include = FALSE}
 #create a long dataframe for pairwise Fst
 boot.fst.all.UL <- boot.fst.all$ul
@@ -341,11 +236,12 @@ pairwise.fst <- left_join(pairwise.fst, sitenames[,c(1,6,2)], by = c("site.y" = 
 
 # contains abbreviations
 ```
-```{r plot Fst, warning = F, message = F, fig.height=5,fig.width=5}
+```{r plot Fst, warning = F, message = F, fig.height=7, fig.width=8}
+ #purples from structure
 ggplot(pairwise.fst, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classic() + 
   scale_fill_gradientn(colors = mypalette3, limits = c(0,0.02)) + 
   geom_text(aes(label = Sig), size = 8)+
-  theme(text = element_text(family = "Arial", size = 22),
+  theme(text = element_text(size = 22),
         axis.text.x = element_text(angle = 90, size = 26,
                                    face = c("bold", "plain", "bold", "plain", "plain",
                                             "bold", "bold", "plain", "bold",
@@ -364,6 +260,10 @@ ggplot(pairwise.fst, aes(abb.x, abb.y, fill = Fst)) + geom_tile() + theme_classi
   ggtitle('Fst heatmap') 
 
 ```
+
+
+
+
 # Structure analysis
 
 We used ParallelStructure to run STRUCTURE on multiple cores. Details on 
@@ -375,12 +275,16 @@ Ensure you have enough computational power to conduct this analysis.
 
 ```{r structure, warning=FALSE, message=FALSE, eval=FALSE}
 
-##### Running structure for males #####
+##### Running structure #####
 
-all <- fread("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru")
-infile <- "/data/home/rchen/Hunting/blackgrouse-hunting/data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru"
-# system("mkdir data/Results_stru_males")
-outpath <- "/data/home/rchen/Hunting/blackgrouse-hunting/analyses/structure/results/"
+all <- fread("data/cleandata/Microsat.adults.plus.unrelated.
+             chicks.noLOCUS1+13.forstructure.stru")
+
+infile <- "/data/home/rchen/Hunting/blackgrouse-hunting/data/
+cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru"
+
+outpath <- "/data/home/rchen/Hunting/blackgrouse-hunting/analyses/
+structure/results/"
 
 # job matrix and write to job file
 nrep <- 10
@@ -400,7 +304,8 @@ hunt_jobs <- matrix(c(ID_var, rep(pop, nrep * up_to_k), k_var,
                       rep(burnin, nrep * up_to_k),
                       rep(niter, nrep * up_to_k)), nrow = nrep * up_to_k)
 
-write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), file = "analyses/structure/structure_jobs.txt")
+write(t(hunt_jobs), ncol = length(hunt_jobs[1,]), 
+      file = "analyses/structure/structure_jobs.txt")
 
 # file path to structure
 
@@ -410,26 +315,28 @@ STR_path='/usr/local/bin/'
 
 # Run structure (from terminal, do not run this last part in Rstudio)
 
-
-ParallelStructure::parallel_structure(structure_path=STR_path,
-                                      joblist='/data/home/rchen/Hunting/blackgrouse-hunting/analyses/structure/structure_jobs.txt', 
-                                      n_cpu=45, infile=infile,
-                                      outpath=outpath,
-                                      numinds = nrow(all)/2,
-                                      numloci=ncol(all)-2,
-                                      noadmix = 0, alpha = 1.0, freqscorr=1, lambda = 1,
-                                      printqhat=1, plot_output=0, onerowperind=0, locprior = 0)
+parallel_structure(structure_path=STR_path,
+                                      joblist='analyses/structure/structure_jobs.txt',
+                   n_cpu=45, infile=infile,
+                   outpath=outpath,
+                   numinds = nrow(all)/2,
+                   numloci=ncol(all)-2,
+                   noadmix = 0, alpha = 1.0, freqscorr=1,
+                   lambda = 1,
+                   printqhat=1, plot_output=0, 
+                   onerowperind=0, locprior = 0)
 
 
 ```
 
 These STRUCTURE analyses gave us the following results:
 
-```{r plots structure, echo=F, message=F, warning=F}
+
+```{r plots structure, echo=F, message=F, warning=F, fig.height=5, fig.weight=6}
 
 ###Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
 
-ks <- read.csv("analyses/structure/results/Run_files/output.csv")
+ks_all <- read.csv("analyses/structure/results/Run_files/output.csv")
 
 ## plotting K vs mean log likelihood
 ggplot(ks_all, aes(x = k, y = elpdmean)) +
@@ -441,8 +348,7 @@ ggplot(ks_all, aes(x = k, y = elpdmean)) +
                      labels = c("-40K", "-36K", "-32K"))+
   geom_errorbar(aes(ymin = elpdmin, ymax = elpdmax), width = 0.1, col = "gray45") +
   theme_classic() +
-  theme(text = element_text(family = "Arial"),
-        axis.title = element_text(face = "bold"),
+  theme(axis.title = element_text(face = "bold"),
         axis.title.x = element_text(size = 22),
         axis.title.y = element_text(size = 22),
         axis.text = element_text(size = 22),
@@ -450,95 +356,147 @@ ggplot(ks_all, aes(x = k, y = elpdmean)) +
 
 ```
 
+# Sex biased dispersal
+Next, we executed Mantel tests and spatial auto-correlation in GenAlEx (Excel add-in) for the sexes separately. To infer sex-biased dispersal directly, we also executed a sex-biased dispersal test in GenAlEx. These analyses were not conducted in R, but the raw data sheets can be found in the analyses/genalex directory, as well as the GenAlEx excel sheets.
+
+# Effect of hunting on genetic diversity 
+
+To understand the effect of hunting on genetic diversity, we first conduct a t-test comparing observed heterozygosity, expected heterozygosity and allelic richness between hunted and unhunted populations. Next, we construct a lm to include random effects of locus and population on the genetic diversity measures.
+
+```{r hidden genetic diversiy, include = F, warning = F, message=F}
+pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+pops$pop_num <- as.character(pops$pop_num)
+measures <- data.frame(pop = names(summary.by.pop), Hobs = Hobs.ls, 
+                       Hexp = Hexp.ls, Ar = colMeans(allelic.richness.all.df, na.rm = T))
+measures <- left_join(measures, pops[,c(2,3)], by = c("pop" = "pop_num"))
+
+# let's also do it including all data per locus, and model with locus as random factor
+Hobs.all <- NULL
+
+for (i in 1:length(summary.by.pop)){
+  Hobs.i <- data.frame(locus= c(names(summary.by.pop[[i]]$Hobs)),
+                       pop = names(summary.by.pop[i]),
+                       Hobs = c(summary.by.pop[[i]]$Hobs))
+  Hobs.all <- rbind(Hobs.all, Hobs.i)
+  rownames(Hobs.all) <- NULL
+}
+
+Hexp.all <- NULL
+
+for (i in 1:length(summary.by.pop)){
+  Hexp.i <- data.frame(locus= c(names(summary.by.pop[[i]]$Hexp)),
+                       pop = names(summary.by.pop[i]),
+                       Hexp = c(summary.by.pop[[i]]$Hexp))
+  Hexp.all <- rbind(Hexp.all, Hexp.i)
+  rownames(Hexp.all) <- NULL
+}
+
+Ar.all <- NULL
+
+for (i in 1:ncol(allelic.richness.all.df)){
+  Ar.i <- data.frame(locus= c(rownames(allelic.richness.all.df[i])),
+                       pop = colnames(allelic.richness.all.df[i]),
+                       Ar = c(allelic.richness.all.df[,i]))
+  Ar.all <- rbind(Ar.all, Ar.i)
+  rownames(Ar.all) <- NULL
+}
+
+measures.all <- left_join(Hobs.all, Hexp.all) %>% left_join(Ar.all) %>% left_join(pops[,c(2,3)], by = c("pop" = "pop_num"))
+
+measures.all
+measures.all$locus <- as.factor(measures.all$locus)
+measures.all$pop <- as.factor(measures.all$pop)
+measures.all$hunt <- as.factor(measures.all$hunt)
+
+```
+
+```{r Compare genetic diversity, warning = F, message=F}
+
+## First: t-test to compare differences in genetic diversity between 
+## hunted vs unhunted sites (where we have the mean value of all loci per site)
+
+head(measures)
+
+t.test(measures$Hobs[which(measures$hunt == "hunted")], 
+       measures$Hobs[which(measures$hunt == "unhunted")])
+
+t.test(measures$Hexp[which(measures$hunt == "hunted")], 
+       measures$Hexp[which(measures$hunt == "unhunted")])
+
+t.test(measures$Ar[which(measures$hunt == "hunted")], 
+       measures$Ar[which(measures$hunt == "unhunted")])
+
+## Then, we model the effect of hunting on the three genetic diversity measures,
+## where we take each measure per locus per site and perform a likelihood
+## ratio test to assess the difference between the null and alternative model
+
+head(measures.all)
+
+# excluding BG20 (out of HWE)
+Ho_model <- lmerTest::lmer(Hobs ~ hunt + (1|locus) + (1|pop), 
+                           data = subset(measures.all, locus != "L13")) 
+
+Ho_model_null <- lmerTest::lmer(Hobs ~ (1|locus) + (1|pop), 
+                                data = subset(measures.all, locus != "L13")) 
+
+He_model <- lmerTest::lmer(Hexp ~ hunt + (1|locus) + (1|pop), 
+                           data = subset(measures.all, locus != "L13"))
+He_model_null <- lmerTest::lmer(Hexp ~ (1|locus) + (1|pop), 
+                                data = subset(measures.all, locus != "L13"))
+
+Ar_model <- lmerTest::lmer(Ar ~ hunt + (1|locus) + (1|pop), 
+                           data = subset(measures.all, locus != "L13"))
+Ar_model_null <- lmerTest::lmer(Ar ~ (1|locus) + (1|pop), 
+                                data = subset(measures.all, locus != "L13"))
+
+#LRT
+anova(Ho_model, Ho_model_null) # no significant difference
+anova(He_model, He_model_null) # no significant difference
+anova(Ar_model, Ar_model_null) # no significant difference
+
+```
 # Calculating and modelling sMLH
 
 To quantify inbreeding levels, we calculated sMLH using the inbreedR package.
-Next, to understand the effects of hunting on inbreeding, we built a 
-mixed-model and investigated the fit of the models using various packages.
+Then, to understand the effects of hunting on inbreeding, we built a 
+mixed-model and investigated the fit of the models.
 
-```{r setup smlh, echo=F, warning=F, message=F}
-sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
-sitenames[1,1] <- "Koskenpää"
-sitenames[5,1] <- "Nyrölä"
 
-#Load in filtered data
-males.inb <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv") 
-males.inb <- as.data.frame(males.inb)
-males.inb <- left_join(males.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num")) 
-males.inb <- males.inb[,c(1,27,3:26)] #reorganise
-names(males.inb)[2] <- "pop"
-
-females.inb <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv") 
-females.inb <- left_join(females.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num"))
-females.inb <- females.inb[,c(1,27,3:26)] #reorganise
-names(females.inb)[2] <- "pop"
-
-chicks.inb <- fread("data/cleandata/Unsplit.microsat.chicks.noLOCUS1+13+14.csv")
-chicks.inb <- as.data.frame(chicks.inb)
-chicks.inb <- left_join(chicks.inb, sitenames[,c(1,2)], by = c("pop" = "pop_num"))
-chicks.inb <- chicks.inb[,c(1,25,3:24)]
-names(chicks.inb)[2] <- "pop"
-```
-```{r smlh, warning=F, message=F}
-## Change formats to be loaded into inbreedR 
-males.inb <- males.inb %>% remove_rownames %>% column_to_rownames(var="id")
-males.inb <- males.inb[,-1]
-
-females.inb <- females.inb %>% remove_rownames %>% column_to_rownames(var="id")
-females.inb <- females.inb[,-1]
-
-chicks.inb <- chicks.inb %>% remove_rownames %>% column_to_rownames(var="id")
-chicks.inb <- chicks.inb[,-1]
-
-# convert to inbreedR
-males.inb <- convert_raw(males.inb)
-females.inb <- convert_raw(females.inb)
-chicks.inb <- convert_raw(chicks.inb)
-
-#### Calculate sMLH ####
-
-sMLH_females <- sMLH(females.inb) #sMLH
-het_var_females <- var(sMLH_females, na.rm=TRUE) # variance in sMLH
-summary(sMLH_females)
-het_var_females
-
-sMLH_males <- sMLH(males.inb) #sMLH
-het_var_males <- var(sMLH_males, na.rm=TRUE) # variance in sMLH
-summary(sMLH_males)
-het_var_males
-
-sMLH_chicks <- sMLH(chicks.inb)
-het_var_chicks <- var(sMLH_chicks, na.rm=TRUE) # variance in sMLH
-summary(sMLH_chicks)
-het_var_chicks
-```
-
-```{r smlh modelsetup, warning=F, echo=F, message=F}
+```{r smlh modelsetup, warning=F, echo=F, message=F, fig.height=5, fig.weight=5}
 # Loaded in clean version of sMLH and split by sex/age class
 load(file = "data/cleandata/sMLH.all.RData")
 
 ## Look at distribution sMLH ##
 
-ggplot(sMLH.all[which(sMLH.all$sex == "m" & sMLH.all$age == "adult")], aes(x=sMLH)) + geom_histogram() +theme_classic() +
+ggplot(subset(sMLH.all, sex == "m" & age == "adult"), aes(x=sMLH)) + geom_histogram() +theme_classic() +
   labs(title = "Histogram of sMLH for adult males")
 
-ggplot(sMLH.all[which(sMLH.all$sex == "f" & sMLH.all$age == "adult")], aes(x=sMLH)) + geom_histogram() +theme_classic() +
+ggplot(subset(sMLH.all,sex == "f" & age == "adult"), aes(x=sMLH)) + geom_histogram() +theme_classic() +
   labs(title = "Histogram of sMLH for adult females")
 
-ggplot(sMLH.all[which(sMLH.all$age == "chick")], aes(x=sMLH)) + geom_histogram() +theme_classic() +
-  labs(title = "Histogram of sMLH for chicks")
+ggplot(subset(sMLH.all,age == "chick"), aes(x=sMLH)) + geom_histogram() +
+  theme_classic() +
+  labs(title = "Histogram of sMLH for unrelated chicks")
 
-# not perfectly normal, but good enough. also tried the below models with 
+# not perfectly normal. also tried the below models with 
 # both a poisson and gamma distribution, which had a bad fit
 ```
 
 ```{r smlh modelling, warning=F, message=F}
 
 ### Setup models ####
-sMLH.all.no.na <- subset(sMLH.all, !is.na(density))
-sMLH.model.all.lmer <- lmerTest::lmer(sMLH ~ hunt*density + sex + age+ (1|pop), data = sMLH.all.no.na)
-sMLH.model.all.lmer.noint <- lmerTest::lmer(sMLH ~ hunt + sex + age+ density + (1|pop), data = sMLH.all.no.na)
-sMLH.model.all.lmer.null <- lmerTest::lmer(sMLH ~ density+ sex + age+ (1|pop), data = sMLH.all.no.na)
+sMLH.all.no.na <- subset(sMLH.all, !is.na(density)) 
+#exclude those without density otherwise lrt won't work
+
+sMLH.model.all.lmer <- lmerTest::lmer(sMLH ~ 
+                                        hunt*density + sex + age+ (1|pop), 
+                                      data = sMLH.all.no.na)
+sMLH.model.all.lmer.noint <- lmerTest::lmer(sMLH ~ 
+                                              hunt + sex + age+ density + (1|pop), 
+                                            data = sMLH.all.no.na)
+sMLH.model.all.lmer.null <- lmerTest::lmer(sMLH ~ 
+                                             density+ sex + age+ (1|pop), 
+                                           data = sMLH.all.no.na)
 
 anova(sMLH.model.all.lmer.null, sMLH.model.all.lmer)
 anova(sMLH.model.all.lmer.null, sMLH.model.all.lmer.noint)
@@ -561,79 +519,22 @@ by hunting. We used BA3 to calculate migration directions and rates,
 followed by building mixed models to estimate the effect of hunting on migration.
 
 ```{r calculate migration, warning=F, message=F,eval=FALSE}
-
-# load in pop data
-pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
-pops$pop_num <- as.factor(pops$pop_num)
-
-## load in Matrix distances between sites as calculated with GenAlEx ##
-distance <- read_excel("data/details/CalculateDistanceSitesGenAlEx.xlsx", 
-                       sheet = "MatrixForR")
-names(distance)[1] <- "Site_A"
-distance_long <- melt(distance)
-names(distance_long) <- c("Site_A", "Site_B", "Distance")
-distance_long <- subset(distance_long, distance_long$Site_A != distance_long$Site_B)
-
-# files were reformatted to fit BA3, see the script in the github directory
-# called 5.migrationmodels.R for more details
-
 #### Running BA3 ####
 
-## males
 #install BA3, run through command line/terminal
-#made a directory per run using the command:
-system("mkdir /data/migrationanalysis/BA3runs/males_run1") #repeat for run1-run5
+#make a directory per run using the command:
+system("mkdir analyses/migrationanalysis/BA3runs/run1") #repeat for run1-run5
 
 #5 runs with 5 different random seeds
 system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 
-       -b 1000000 -n 1000 -o males_run1.txt 
-       /data/migrationanalysis/data_males_ba3.txt") 
+       -b 1000000 -n 1000 -o run1.txt 
+       analyses/migrationanalysis/data_all_ba3.txt") #repeat for another 3 runs
 
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 
-       -b 1000000 -n 1000 -o males_run2.txt 
-       /data/migrationanalysis/data_males_ba3.txt")
-
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 
-       -b 1000000 -n 1000 -o males_run3.txt 
-       /data/migrationanalysis/data_males_ba3.txt") 
-
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 
-       -b 1000000 -n 1000 -o males_run4txt 
-       /data/migrationanalysis/data_males_ba3.txt") 
-
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 
-       -b 1000000 -n 1000 -o males_run5.txt 
-       /data/migrationanalysis/data_males_ba3.txt") 
-
-## females
-
-system("mkdir /data/migrationanalysis/BA3runs/females_run1") #repeat for run1-run5
-
-#5 runs with 5 different random seeds
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 
-       -b 1000000 -n 1000 -o females_run1.txt 
-       /data/migrationanalysis/data_females_ba3.txt") 
-
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 
-       -b 1000000 -n 1000 -o females_run2.txt 
-       /data/migrationanalysis/data_females_ba3.txt") 
-
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 
-       -b 1000000 -n 1000 -o females_run3.txt 
-       /data/migrationanalysis/data_females_ba3.txt") 
-
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 
-       -b 1000000 -n 1000 -o females_run4txt 
-       /data/migrationanalysis/data_females_ba3.txt") 
-
-system("~/bin/BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 
-       -b 1000000 -n 1000 -o females_run5.txt 
-       /data/migrationanalysis/data_females_ba3.txt") 
 ```
-```{r migration,message=F, warning=F}
-#### Compare all 10 runs ####
-temp <- list.files(path = "data/migrationanalysis/BA3runs/", 
-                   pattern = ".txt", full.names=T)
+```{r hidden migration,message=F, warning=F, echo=F}
+#### Compare all 5 runs ####
+temp <- list.files(path = "analyses/migrationanalysis/BA3runs", 
+                   pattern = "*txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
 
 # formula for reshaping the dataframes
@@ -678,231 +579,112 @@ for (i in 1:length(myfiles)) {
   myfiles[[i]]<-reshape_ba3(myfiles[[i]])
 }
 
-#separate for males and females
-maleruns <- myfiles[c(6:10)]
-femaleruns <- myfiles[c(1:5)]
-
 #separate per run to compare
-male_run1 <- maleruns[[1]]
-male_run2 <- maleruns[[2]]
-male_run3 <- maleruns[[3]]
-male_run4 <- maleruns[[4]]
-male_run5 <- maleruns[[5]]
-
-female_run1 <- femaleruns[[1]]
-female_run2 <- femaleruns[[2]]
-female_run3 <- femaleruns[[3]]
-female_run4 <- femaleruns[[4]]
-female_run5 <- femaleruns[[5]]
-
+run1 <- myfiles[[1]]
+run2 <- myfiles[[2]]
+run3 <- myfiles[[3]]
+run4 <- myfiles[[4]]
+run5 <- myfiles[[5]]
+```
+```{r migration compare, warning=F,message=F,tidy=TRUE}
 #### Compare runs ####
-plot(male_run1$migration, male_run2$migration)
-#plot(male_run1$migration, male_run3$migration)
-# plot(male_run1$migration, male_run4$migration)
-# plot(male_run1$migration, male_run5$migration)
-# plot(male_run2$migration, male_run3$migration)
-# plot(male_run2$migration, male_run4$migration)
-# plot(male_run2$migration, male_run5$migration)
-# plot(male_run3$migration, male_run4$migration)
-# plot(male_run3$migration, male_run5$migration)
-plot(male_run4$migration, male_run5$migration)
-# all runs correspond
-
-plot(female_run1$migration, female_run2$migration)
-# plot(female_run1$migration, female_run3$migration)
-# plot(female_run1$migration, female_run4$migration)
-# plot(female_run1$migration, female_run5$migration)
-# plot(female_run2$migration, female_run3$migration)
-# plot(female_run2$migration, female_run4$migration)
-# plot(female_run2$migration, female_run5$migration)
-# plot(female_run3$migration, female_run4$migration)
-# plot(female_run3$migration, female_run5$migration)
-plot(female_run4$migration, female_run5$migration)
-
+plot(run1$migration, run2$migration)
+# plot(run1$migration, run3$migration) #hide these in RMarkdown
+# plot(run1$migration, run4$migration)
+# plot(run1$migration, run5$migration)
+# plot(run2$migration, run3$migration)
+# plot(run2$migration, run4$migration)
+# plot(run2$migration, run5$migration)
+# plot(run3$migration, run4$migration)
+# plot(run3$migration, run5$migration)
+plot(run4$migration, run5$migration)
 # all runs correspond
 
 ## Going to pick run 5 for both
 ```
 
-```{r migrationclean, warning=F,message=F,tidy=TRUE}
+```{r migrationclean, warning=F,message=F,tidy=TRUE, echo=F, fig.height=5, fig.weight=6}
 #### Load in cleaned migration files ####
-# again, see R script 5.migrationmodels.R for details on how to merge
-# raw BA3 files with ESS, how the migration values were corrected (set to NA
-# when ESS < 200), added hunted status, added distance between sites
+# see R script 5.migrationmodels.R for details on how BA3 were cleaned
+# Briefly: raw BA3 files were merged with with ESS (effective sample size), and those with an ESS < 200 were set to NA, hunted status and distance between sites were also added
 
-male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
-female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
+run5_clean <- read.csv("analyses/migrationanalysis/run5_clean.csv")
 
+head(run5_clean)
 ### Plotting migration rates from run 5 ####
 #first, exclude the 'non-migration rates' which are those where pop in = pop out
-male_run5_clean <- subset(male_run5_clean, m_in != m_out)
-female_run5_clean <- subset(female_run5_clean, m_in != m_out)
+run5_clean <- subset(run5_clean, m_in != m_out)
 
+theme_set(theme_classic())
+# out hunted vs out unhunted but exclude nonmigration rates
+
+ttest_in_rates <- t.test(run5_clean$migration_ESSc[which(run5_clean$hunt_in == "hunted" & run5_clean$m_in != run5_clean$m_out)], run5_clean$migration_ESSc[which(run5_clean$hunt_in == "unhunted" & run5_clean$m_in != run5_clean$m_out)])
+
+ggplot(run5_clean, aes(x = hunt_in, y = migration_ESSc)) + geom_boxplot(aes(fill = "Type")) +
+  labs(title = "Migration rates IN") + xlab("Hunted status") + ylab("migration rates in")+
+  labs(subtitle = 
+         paste("Excluding values with ESS < 200 
+Student t-test comparing hunted/unhunted site filtered migration rate in: 
+t = ", round(ttest_in_rates$statistic,2), "and p-value = ", round(ttest_in_rates$p.value, 2)))+ 
+  theme(text = element_text( size = 22),
+        plot.subtitle = element_text(size = 14),
+        legend.position = "none")+
+  scale_fill_manual(values = c("cyan3"))
+
+# in hunted vs in unhunted but exclude nonmigration_ESSc rates
+
+ttest_out_rates <- t.test(run5_clean$migration_ESSc[which(run5_clean$hunt_out == "hunted")], run5_clean$migration_ESSc[which(run5_clean$hunt_out == "unhunted")])
+
+ggplot(run5_clean, aes(x = hunt_out, y = migration_ESSc, fill = "blue")) + geom_boxplot(aes(fill = "Type")) +
+  labs(title = "Migration rates OUT") + xlab("Hunted status") + ylab("migration rates out")+
+  labs(subtitle = 
+         paste("Excluding values with ESS < 200 
+Student t-test comparing hunted/unhunted site corrected migration rate out: 
+t = ", round(ttest_out_rates$statistic,2), "and p-value = ", round(ttest_out_rates$p.value, 3)))+ 
+  theme(text = element_text(size = 22),
+        plot.subtitle = element_text(size = 14),
+        legend.position = "none")+
+  scale_fill_manual(values = c("cyan3"))
+```
+```{rmigration models, warning=F,message=F,tidy=TRUE}
 #### Modelling migration ####
 
-female_run5_clean$sex <- "Female"
-male_run5_clean$sex <- "Male"
-
 #change levels hunted/unhunted
-male_run5_clean$hunt_in <- relevel(as.factor(male_run5_clean$hunt_in), 
-                                   ref = "unhunted")
-male_run5_clean$hunt_out <- relevel(as.factor(male_run5_clean$hunt_out), 
-                                    ref = "unhunted")
+run5_clean$hunt_in <- relevel(as.factor(run5_clean$hunt_in), ref = "unhunted")
+run5_clean$hunt_out <- relevel(as.factor(run5_clean$hunt_out), ref = "unhunted")
 
-female_run5_clean$hunt_in <- relevel(as.factor(female_run5_clean$hunt_in), 
-                                     ref = "unhunted")
-female_run5_clean$hunt_out <- relevel(as.factor(female_run5_clean$hunt_out), 
-                                      ref = "unhunted")
-
-#combine in one df
-migration_both <- rbind(male_run5_clean, female_run5_clean)
-
-<<<<<<< HEAD
-#out
-model.both.out <- glmer(migration_ESSc~ hunt_out + Distance + sex + 
-                          (1|pop_out) + (1|pop_in), 
-                          data = migration_both, 
-                          family = Gamma(link = "log"))
-
-model.both.out.TMB <- glmmTMB(migration_ESSc~ hunt_out + Distance + sex + 
-                                (1|pop_out) + (1|pop_in), 
-                          data = migration_both, 
-                          family = Gamma(link = "log"))
-
-model.both.out.TMB.inter <- glmmTMB(migration_ESSc~ hunt_out + Distance*sex + 
-                                      (1|pop_out) + (1|pop_in), 
-                          data = migration_both, 
-                          family = Gamma(link = "log"))
-
-compare_performance(model.both.out, model.both.out.TMB, 
-                    model.both.out.TMB.inter, rank=T)
-
-# TMB with interaction has a higher performance score
-summary(model.both.out.TMB.inter) 
-simulateResiduals(fittedModel = model.both.out.TMB.inter, plot = T)
-
-#immigration model
-model.both.in <- lme4::glmer(migration_ESSc~ hunt_in + Distance + sex + 
-=======
 #immigration
 
-model.both.in <- glmmTMB(migration_ESSc~ hunt_in + Distance + sex + 
->>>>>>> 27a95f89f214c1c1c603101ead30740590b99881
-                           (1|pop_out) + (1|pop_in), 
-                         data = migration_both, 
+model.in <- glmmTMB(migration_ESSc~ hunt_in + Distance +  (1|pop_out) + (1|pop_in), 
+                         data = run5_clean, 
                          family = Gamma(link = "log"))
 
-<<<<<<< HEAD
-
-model.both.in.TMB <- glmmTMB(migration_ESSc~ hunt_in + Distance + sex + 
-                               (1|pop_out) + (1|pop_in), 
-                         data = migration_both, 
+model.in.null <- glmmTMB(migration_ESSc~ Distance +  (1|pop_out) + (1|pop_in), 
+                         data = run5_clean, 
                          family = Gamma(link = "log"))
 
-model.both.in.TMB.inter <- glmmTMB(migration_ESSc~ hunt_in + Distance*sex + 
-                                     (1|pop_out) + (1|pop_in), 
-                         data = migration_both, 
-                         family = Gamma(link = "log"))
+anova(model.in, model.in.null)
 
-compare_performance(model.both.in, model.both.in.TMB,
-                    model.both.in.TMB.inter, rank=T)
-
-#TMB and lmer model perform the same, but TMB captures more variation,
-#just keep TMB for consistency with emigration model
-
-summary(model.both.in.TMB.inter) 
-simulateResiduals(fittedModel = model.both.in.TMB.inter, plot = T)
-
-## model performance
-icc(model = model.both.out, by_group = TRUE)
-icc(model = model.both.out.TMB, by_group = TRUE)
-icc(model = model.both.out.TMB.inter, by_group = TRUE)
-
-icc(model = model.both.in, by_group = TRUE)
-icc(model = model.both.in.TMB, by_group = TRUE)
-icc(model = model.both.in.TMB.inter, by_group = TRUE)
-
-r.squaredGLMM(model.both.out)
-r.squaredGLMM(model.both.out.TMB)
-r.squaredGLMM(model.both.out.TMB.inter)
-
-r.squaredGLMM(model.both.in)
-r.squaredGLMM(model.both.in.TMB)
-r.squaredGLMM(model.both.in.TMB.inter)
-
-=======
-model.both.in.null <- glmmTMB(migration_ESSc~ Distance + sex + 
-                                (1|pop_out) + (1|pop_in), 
-                         data = migration_both, 
-                         family = Gamma(link = "log"))
-
-anova(model.both.in.null, model.both.in)
-
-summary(model.both.in) 
-simulateResiduals(fittedModel = model.both.in, plot = T)
-
-#with interaction
-model.both.in.interaction <- glmmTMB(migration_ESSc~ hunt_in + Distance*sex + 
-                                       (1|pop_out) + (1|pop_in), 
-                         data = migration_both, 
-                         family = Gamma(link = "log"))
-
-model.both.in.interaction.null <- glmmTMB(migration_ESSc~ Distance*sex + 
-                                            (1|pop_out) + (1|pop_in), 
-                                     data = migration_both, 
-                                     family = Gamma(link = "log"))
-
-anova(model.both.in.interaction, model.both.in.interaction.null)
-
-summary(model.both.in.interaction) 
-simulateResiduals(fittedModel = model.both.in.interaction, plot = T)
+summary(model.in) 
+simulateResiduals(fittedModel = model.in, plot = T)
 
 #out
-model.both.out <- glmmTMB(migration_ESSc~ hunt_out + Distance + sex + 
-                            (1|pop_out) + (1|pop_in), 
-                          data = migration_both, 
+
+model.out <- glmmTMB(migration_ESSc~ hunt_out + Distance + (1|pop_out) + (1|pop_in), 
+                          data = run5_clean, 
                           family = Gamma(link = "log"))
-model.both.out.null <- glmmTMB(migration_ESSc~ Distance + sex + 
-                                 (1|pop_out) + (1|pop_in), 
-                          data = migration_both, 
+model.out.null <- glmmTMB(migration_ESSc~ Distance + (1|pop_out) + (1|pop_in), 
+                          data = run5_clean, 
                           family = Gamma(link = "log"))
 
-anova(model.both.out, model.both.out.null)
+anova(model.out, model.out.null)
 
-summary(model.both.out) 
-simulateResiduals(fittedModel = model.both.out, plot = T)
+summary(model.out) 
+simulateResiduals(fittedModel = model.out, plot = T)
 
-#with interaction
-model.both.out.interaction <- glmmTMB(migration_ESSc~ hunt_out + Distance*sex + 
-                                        (1|pop_out) + (1|pop_in), 
-                          data = migration_both, 
-                          family = Gamma(link = "log"))
-model.both.out.interaction.null <- glmmTMB(migration_ESSc~ Distance*sex + 
-                                             (1|pop_out) + (1|pop_in), 
-                                      data = migration_both, 
-                                      family = Gamma(link = "log"))
-anova(model.both.out.interaction, model.both.out.interaction.null)
+compare_performance(model.in, model.in.null, rank=T)
+compare_performance(model.out, model.out.null, rank=T)
 
-summary(model.both.out.interaction) 
-simulateResiduals(fittedModel = model.both.out.interaction, plot = T)
-
-## assess model performance
-icc(model = model.both.in, by_group = TRUE)
-icc(model = model.both.in.interaction, by_group = TRUE)
-icc(model = model.both.out, by_group = TRUE)
-icc(model = model.both.out.interaction, by_group = TRUE)
-
-
-r.squaredGLMM(model.both.in)
-r.squaredGLMM(model.both.in.interaction)
-r.squaredGLMM(model.both.out)
-r.squaredGLMM(model.both.out.interaction)
-
-compare_performance(model.both.in, model.both.in.interaction, rank=T)
-compare_performance(model.both.out, model.both.out.interaction, rank=T)
-
-#model including interaction outperforms in both
->>>>>>> 27a95f89f214c1c1c603101ead30740590b99881
 ```
 
 # Other plots included in the manuscript
@@ -910,14 +692,11 @@ compare_performance(model.both.out, model.both.out.interaction, rank=T)
 Figure 1 was created with qGIS, for barcharts of STRUCTURE output as in 
 Supplementary Figure 2, please refer to R script 6.CreatingPlots.R
 
-<<<<<<< HEAD
-```{r plots, warning=F, message=F, fig.height=8, fig.weight=8}
-=======
-```{r plots, warning=F, message=F, fig.height=5,fig.width=5}
->>>>>>> 27a95f89f214c1c1c603101ead30740590b99881
+
+```{r plots, warning=F, message=F, fig.height=5, fig.weight=5}
 
 ### Figure 2 - correlograms
-spatial <- read_excel("data/tables/SpatialAutocor_4.4.22.xlsx", sheet = "ForR")
+spatial <- read_excel("tables/SpatialAutocor_04.10.22.xlsx", sheet = "ForR")
 
 ### Males - spatial
 spatial %>% filter(Who == "Male") %>% ggplot(aes(x = What)) + 
@@ -956,7 +735,7 @@ spatial %>% filter(Who == "Females") %>% ggplot(aes(x = What)) +
 
 
 ### Chicks - spatial
-spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) + 
+spatial %>% filter(Who == "Unrelated_chicks") %>% ggplot(aes(x = What)) + 
   geom_line(aes(y = r), col = "#8989D0", size = 1.5) + theme_classic() + 
   geom_hline(yintercept = 0, col = "black")+
   geom_ribbon(aes(ymax = U, ymin = L), fill = "#8989D0", alpha = 0.5)+
@@ -973,28 +752,18 @@ spatial %>% filter(Who == "Chicks") %>% ggplot(aes(x = What)) +
         axis.title.y = element_text(size = 30)) 
 
 ### Figure 3: boxplots migration rates ####
-male_run5_clean <- read.csv("data/migrationanalysis/run5_males_clean.csv")
-female_run5_clean <- read.csv("data/migrationanalysis/run5_females_clean.csv")
-
-female_run5_clean$sex <- "Female"
-male_run5_clean$sex <- "Male"
-
-#combine in one df
-migration_both <- rbind(male_run5_clean, female_run5_clean)
+run5_clean <- read.csv("analyses/migrationanalysis/run5_clean.csv")
 
 #change levels
-migration_both$hunt_in <- relevel(as.factor(migration_both$hunt_in), 
-                                  ref = "unhunted")
-migration_both$hunt_out <- relevel(as.factor(migration_both$hunt_out), 
-                                   ref = "unhunted")
+run5_clean$hunt_in <- relevel(as.factor(run5_clean$hunt_in), ref = "unhunted")
+run5_clean$hunt_out <- relevel(as.factor(run5_clean$hunt_out), ref = "unhunted")
 
 #first, exclude the 'non-migration rates' which are those where pop in = pop out
-migration_both <- subset(migration_both, m_in != m_out)
+run5_clean <- subset(run5_clean, m_in != m_out)
 
 # plot emigration rates 
-ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) + 
-  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + 
-  ylim(0, 0.03)+
+ggplot(run5_clean, aes(x = hunt_out, y = migration_ESSc, fill = "#57939a")) + 
+  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
   labs(title = "(a) Emigration rates") + 
   ylab("Migration rate")+
   theme(text = element_text(size = 26),
@@ -1003,18 +772,14 @@ ggplot(migration_both, aes(x = hunt_out, y = migration_ESSc, fill = sex)) +
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(margin = margin
-                                    (t = 0, r = 20, b = 0, l = 0)))+
-  scale_fill_manual(values = c("Male" = "#57939a",
-                               "Female" = "#be4d5a"),
-                    labels=c("Male", "Female"))+
-  guides(fill = guide_legend("Sex")) 
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
+        legend.position = "none")+
+  scale_fill_manual(values=c("#57939a"))
 
 #plot immigration rates
 
-ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) + 
-  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + 
-  ylim(0, 0.03)+
+ggplot(run5_clean, aes(x = hunt_in, y = migration_ESSc, fill = "#be4d5a")) + 
+  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
   labs(title = "(b) Immigration rates") + 
   ylab("Migration rate")+
   theme(text = element_text(size = 26),
@@ -1023,12 +788,11 @@ ggplot(migration_both, aes(x = hunt_in, y = migration_ESSc, fill = sex)) +
         legend.key.size = unit(1, 'cm'),
         plot.title = element_text(size = 38),
         axis.title.x = element_blank(),
-        axis.title.y = element_text(margin = margin
-                                    (t = 0, r = 20, b = 0, l = 0)))+
-  scale_fill_manual(values = c("Male" = "#57939a",
-                               "Female" = "#be4d5a"),
-                    labels=c("Male", "Female"))+
-  guides(fill = guide_legend("Sex"))
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
+        legend.position = "none")+
+  scale_fill_manual(values = c("#be4d5a"))+geom_text(x = 1.5, y = 0.028, label = "*", size = 10) + geom_segment(x = 1, xend = 2, y = 0.025, yend = 0.025)+
+  geom_segment(x=1, xend = 1, y = 0.025, yend = 0.024)+geom_segment(x=2, xend = 2, y = 0.025, yend = 0.024)
+
 ```
 
 See below session information including package versions.

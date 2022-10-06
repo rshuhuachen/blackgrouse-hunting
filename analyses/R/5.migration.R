@@ -90,7 +90,7 @@ system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 100
 system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
 
 #### Compare all 10 runs ####
-temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = ".txt", full.names=T)
+temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = "*.txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
 
 # formula for reshaping the dataframes
