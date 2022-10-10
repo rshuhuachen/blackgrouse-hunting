@@ -274,6 +274,8 @@ anova(model.in, model.in.null)
 
 summary(model.in) 
 simulateResiduals(fittedModel = model.in, plot = T)
+icc(model.in, by_group=T)
+r.squaredGLMM(model.in)
 
 #out
 
@@ -288,6 +290,8 @@ anova(model.out, model.out.null)
 
 summary(model.out) 
 simulateResiduals(fittedModel = model.out, plot = T)
+icc(model.out, by_group = T)
+r.squaredGLMM(model.out)
 
 compare_performance(model.in, model.in.null, rank=T)
 compare_performance(model.out, model.out.null, rank=T)
