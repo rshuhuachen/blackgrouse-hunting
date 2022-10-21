@@ -301,9 +301,9 @@ compare_performance(model.out, model.out.null, rank=T)
 #### Additional: assignment test #####
 
 ### Done with geneclass2, rannala&mountain(97) criterion, 1000 simulated individuals with Paetkau et al 2004 algorithm. 0.01 p value threshold
-library(data.table)
+library(data.table);library(dplyr)
 assign<-fread("analyses/migrationanalysis/geneclass_results.csv", skip=13)
-migrants <-subset(assign, probability <= 0.01)
+migrants <-subset(assign, probability <= 0.05)
 migrants$id_n <- row.names(migrants)
 migrants <- migrants[,c(20,2:17)]
 names(migrants) <- c("id_n", "site", "home_max", "pval", "1", "2", "3", "4", 
