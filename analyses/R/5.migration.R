@@ -44,34 +44,6 @@ summary(model_assign)
 ######## BA3 ##########
 #######################
 
-####### Reformatting for BA3 #######
-all.stru <- fread("data/cleandata/Microsat.adults.noLOCUS1+13.forstructure.stru")
-head(all.stru)
-names(all.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
-                      "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
-
-all.stru[all.stru==-9] <- 0
-all.stru.a <- all.stru[seq(from = 1, by = 2, to = nrow(all.stru)-1),]
-all.stru.b <- all.stru[seq(from = 2, by = 2, to = nrow(all.stru)),]
-
-ba3.all.a <- melt(data = all.stru.a,
-              id.vars = c("indivID", "popID"),
-              variable.name = "locID",
-              value.name = "allele1")
-
-ba3.all.b <- melt(data = all.stru.b,
-              id.vars = c("indivID", "popID"),
-              variable.name = "locID",
-              value.name = "allele2")
-
-ba3.all <- left_join(ba3.all.a, ba3.all.b, by = c("indivID", "popID", "locID"))
-
-head(ba3.all)
-
-write.table(ba3.all, "analyses/migrationanalysis/data_all_ba3.txt",
-            col.names = F, row.names = F, sep = " ", quote = F)
-
-
 ####### Reformatting for BA3 with BG20 #######
 all.stru.nohwe <- fread("data/cleandata/Microsat.adults.noLOCUS1.forstructure.stru")
 head(all.stru.nohwe)
@@ -106,24 +78,21 @@ system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run2"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run3"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run4"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run5"))
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run1_nohwe")) #nohwe
 
 #5 runs with 5 different random seeds
 
 #(1) migration rates; (2) individual migrant ancestries; (3) allele frequencies; (4) inbreeding coefficients; (5) missing genotypes
 pathba3 <- "/Users/vistor/Documents/Work/Bielefeld/PhD/Software/BA3-migration/" #path to BA3
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o run2.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o run4txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o run2.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o run4txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run1_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) #nohwe
-
-#### Compare all 10 runs ####
+#### Compare all 5 runs ####
 temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = "*.txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
-
+run5 <- fread("analyses/migrationanalysis/run2_nohwe/run2_nohwe.txt", skip = 18, nrows=12, header=F)
 # formula for reshaping the dataframes
 
 reshape_ba3 <- function(m) {
@@ -167,6 +136,7 @@ reshape_ba3 <- function(m) {
 for (i in 1:length(myfiles)) {
   myfiles[[i]]<-reshape_ba3(myfiles[[i]])
 }
+run5 <- reshape_ba3(run5)
 
 #separate per run to compare
 run1 <- myfiles[[1]]
@@ -194,7 +164,7 @@ plot(run4$migration, run5$migration)
 # to do: add ESS, corrected migration value, hunted status, distance between sites
 
 #first add ESS
-ESS_run5 <- read.delim("analyses/migrationanalysis/BA3_tracersummary_run5.txt", sep = "\t")
+ESS_run5 <- read.delim("analyses/migrationanalysis/run2_nohwe/BA3_tracerfile_run2_nohwe_trace.txt", sep = "\t")
 
 ESS_run5.df <- t(ESS_run5)
 colnames(ESS_run5.df) <- ESS_run5.df[1,]
@@ -308,6 +278,10 @@ simulateResiduals(fittedModel = model.in, plot = T)
 icc(model.in, by_group=T)
 r.squaredGLMM(model.in)
 
+testUniformity(model.in)
+testOutliers(model.in)
+testOverdispersion(model.in)
+
 #out
 
 model.out <- glmmTMB(migration_ESSc~ hunt_out + Distance + (1|pop_out) + (1|pop_in), 
@@ -323,6 +297,10 @@ summary(model.out)
 simulateResiduals(fittedModel = model.out, plot = T)
 icc(model.out, by_group = T)
 r.squaredGLMM(model.out)
+
+testUniformity(model.out)
+testOutliers(model.out)
+testOverdispersion(model.out)
 
 compare_performance(model.in, model.in.null, rank=T)
 compare_performance(model.out, model.out.null, rank=T)
