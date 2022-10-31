@@ -71,6 +71,34 @@ head(ba3.all)
 write.table(ba3.all, "analyses/migrationanalysis/data_all_ba3.txt",
             col.names = F, row.names = F, sep = " ", quote = F)
 
+
+####### Reformatting for BA3 with BG20 #######
+all.stru.nohwe <- fread("data/cleandata/Microsat.adults.noLOCUS1.forstructure.stru")
+head(all.stru.nohwe)
+names(all.stru.nohwe) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
+                     "TTD3", "TUD6", "TUT3", "TUT4", "BG20", "TTT2")
+
+all.stru.nohwe[all.stru.nohwe==-9] <- 0
+all.stru.nohwe.a <- all.stru.nohwe[seq(from = 1, by = 2, to = nrow(all.stru.nohwe)-1),]
+all.stru.nohwe.b <- all.stru.nohwe[seq(from = 2, by = 2, to = nrow(all.stru.nohwe)),]
+
+ba3.all.nohwe.a <- melt(data = all.stru.nohwe.a,
+                  id.vars = c("indivID", "popID"),
+                  variable.name = "locID",
+                  value.name = "allele1")
+
+ba3.all.nohwe.b <- melt(data = all.stru.nohwe.b,
+                  id.vars = c("indivID", "popID"),
+                  variable.name = "locID",
+                  value.name = "allele2")
+
+ba3.nohwe.all <- left_join(ba3.all.nohwe.a, ba3.all.nohwe.b, by = c("indivID", "popID", "locID"))
+
+head(ba3.nohwe.all)
+
+write.table(ba3.nohwe.all, "analyses/migrationanalysis/data_all_nowhe_ba3.txt",
+            col.names = F, row.names = F, sep = " ", quote = F)
+
 #### Running BA3 ####
 #make directory per run
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run1")) 
@@ -78,6 +106,7 @@ system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run2"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run3"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run4"))
 system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run5"))
+system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run1_nohwe")) #nohwe
 
 #5 runs with 5 different random seeds
 
@@ -88,6 +117,8 @@ system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 1000
 system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
 system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o run4txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
 system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
+
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run1_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) #nohwe
 
 #### Compare all 10 runs ####
 temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = "*.txt", full.names=T)
