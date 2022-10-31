@@ -50,11 +50,12 @@ pairwise.fst.fig <- ggplot(pairwise.fst, aes(abb.x, abb.y, fill = Fst)) + geom_t
         legend.text = element_text(size = 26),
         legend.title = element_text(size = 26),
         legend.key.size = unit(1, 'cm'),
-        plot.title = element_text(size = 38),
-        legend.position = c(0.8, 0.3)) +
+        plot.title = element_text(size = 38, vjust= 3),
+        legend.position = c(0.9, 0.4),
+        plot.margin = margin(1,1,1,1,"cm")) +
   ggtitle('(a) Fst heatmap') 
 
-ggsave(pairwise.fst.fig, filename="figures/Fst_all.png")
+ggsave(pairwise.fst.fig, filename="figures/Fst_all.png", width = 3000, height = 2500, units = "px")
 
 ### Second - correlograms ###
 spatial <- read_excel("tables/SpatialAutocor_04.10.22.xlsx", sheet = "ForR")
@@ -70,14 +71,15 @@ males.spatial <- spatial %>% filter(Who == "Male") %>% ggplot(aes(x = What)) +
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
   theme(text = element_text(family = "Arial", size = 14),
-        plot.title = element_text(size = 38),
+        plot.title = element_text(size = 38, vjust = 3),
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
         axis.title.x = element_text(size = 30), 
-        axis.title.y = element_text(size = 30)) +
+        axis.title.y = element_text(size = 30),
+        plot.margin = margin(1,1,1,1,"cm")) +
   ggtitle('(b) Correlogram adult males') 
 
-ggsave(males.spatial, file="figures/Correlogram_males.png")
+ggsave(males.spatial, file="figures/Correlogram_males.png", width = 3000, height = 2500, units = "px")
 
 ### Females - spatial
 
@@ -89,14 +91,15 @@ females.spatial <- spatial %>% filter(Who == "Females") %>% ggplot(aes(x = What)
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
   theme(text = element_text(family = "Helvetica", size = 14),
-        plot.title = element_text(size = 38),
+        plot.title = element_text(size = 38, vjust = 3),
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
         axis.title.x = element_text(size = 30), 
-        axis.title.y = element_text(size = 30))+
+        axis.title.y = element_text(size = 30),
+        plot.margin = margin(1,1,1,1,"cm"))+
   ggtitle('(c) Correlogram adult females') 
 
-ggsave(females.spatial, file="figures/Correlogram_females.png")
+ggsave(females.spatial, file="figures/Correlogram_females.png",width = 3000, height = 2500, units = "px")
 
 ### Chicks - spatial
 chicks.spatial <- spatial %>% filter(Who == "Unrelated_chicks") %>% ggplot(aes(x = What)) + 
@@ -107,14 +110,15 @@ chicks.spatial <- spatial %>% filter(Who == "Unrelated_chicks") %>% ggplot(aes(x
   xlab("Distance class") + ylab("Autocorrelation coefficient r")+
   scale_x_continuous(breaks = c(seq(0, 60, by = 10)), limits=c(4,61))+
   theme(text = element_text(family = "Arial", size = 14),
-        plot.title = element_text(size = 38),
+        plot.title = element_text(size = 38, vjust = 3),
         axis.text.x = element_text(size = 26, margin = margin(b = 10)), 
         axis.text.y = element_text(size = 26, margin = margin(l = 10)),
         axis.title.x = element_text(size = 30), 
-        axis.title.y = element_text(size = 30)) +
+        axis.title.y = element_text(size = 30),
+        plot.margin = margin(1,1,1,1,"cm")) +
   ggtitle('(d) Correlogram unrelated chicks') 
 
-ggsave(chicks.spatial, file="figures/Correlogram_chicks.png")
+ggsave(chicks.spatial, file="figures/Correlogram_chicks.png", width = 3000, height = 2500, units = "px")
 
 png("figures/Fst_Correlograms.png", 
     width = 1500, height = 1000, units = "px")
@@ -138,35 +142,38 @@ run5_clean <- subset(run5_clean, m_in != m_out)
 
 # plot emigration rates 
 emigration.plot <- ggplot(run5_clean, aes(x = hunt_out, y = migration_ESSc, fill = "#57939a")) + 
-  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
+  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.01)+
   labs(title = "(a) Emigration rates") + 
   ylab("Migration rate")+
   theme(text = element_text(family = "Arial", size = 26),
         legend.text = element_text(size = 28),
         legend.title = element_text(size = 28),
         legend.key.size = unit(1, 'cm'),
-        plot.title = element_text(size = 38),
+        plot.title = element_text(size = 38, vjust=3),
         axis.title.x = element_blank(),
         axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
-        legend.position = "none")+
+        legend.position = "none",
+        plot.margin = margin(1,0.5,0.5,0.5,"cm"))+
   scale_fill_manual(values=c("#57939a"))
 
 #plot immigration rates
 
 immmigration.plot <- ggplot(run5_clean, aes(x = hunt_in, y = migration_ESSc, fill = "#be4d5a")) + 
-  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.03)+
+  geom_boxplot(outlier.shape = NA, aes(middle = mean(migration_ESSc))) + ylim(0, 0.01)+
   labs(title = "(b) Immigration rates") + 
   ylab("Migration rate")+
   theme(text = element_text(family = "Arial", size = 26),
         legend.text = element_text(size = 28),
         legend.title = element_text(size = 28),
         legend.key.size = unit(1, 'cm'),
-        plot.title = element_text(size = 38),
+        plot.title = element_text(size = 38, vjust=3),
         axis.title.x = element_blank(),
         axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
-        legend.position = "none")+
-  scale_fill_manual(values = c("#be4d5a"))+geom_text(x = 1.5, y = 0.028, label = "*", size = 10) + geom_segment(x = 1, xend = 2, y = 0.025, yend = 0.025)+
-  geom_segment(x=1, xend = 1, y = 0.025, yend = 0.024)+geom_segment(x=2, xend = 2, y = 0.025, yend = 0.024)
+        legend.position = "none",
+        plot.margin = margin(1,0.5,0.5,0.5,"cm"))+
+  scale_fill_manual(values = c("#be4d5a"))+geom_text(x = 1.5, y = 0.0095, label = "*", size = 10) + 
+  geom_segment(x = 1, xend = 2, y = 0.009, yend = 0.009)+
+  geom_segment(x=1, xend = 1, y = 0.0085, yend = 0.009)+geom_segment(x=2, xend = 2, y = 0.0085, yend = 0.009)
 
 png("figures/Migration.png", 
     width = 1100, height = 550, units = "px")
@@ -177,10 +184,10 @@ grid::grid.draw(cbind(gA, gB))
 dev.off()
 
 ggsave(plot = emigration.plot, "figures/Emigration.png",
-       width = 30, height = 20, units = c("cm"))
+       width = 20, height = 20, units = c("cm"))
 
 ggsave(plot = immmigration.plot, "figures/Immigration.png",
-       width = 30, height = 20, units = c("cm"))
+       width = 20, height = 20, units = c("cm"))
 
 #### Supplementary Figure 1: log likelihood per K (STRUCTURE) ##### 
 
@@ -210,7 +217,7 @@ library(cowplot); library(gridExtra)
 ggsave(plot=ks_all_plot, "figures/K_combined.png", device = "png",
        width = 3000, height = 1000, unit="px")
 
-##### Supplementary Figure 2: barplots STRUCTURE #####
+#### Supplementary Figure 2: barplots STRUCTURE #####
 
 ##### First plot the bargraphs for 10 different K's an example of 10 different runs
 all_path_to_structure_out <- "analyses/structure/results/Run_files/"
@@ -283,5 +290,43 @@ plotQ(qlist=(all_slist)[c(41)],imgoutput = "sep", grplab=all_pops,ordergrp = TRU
       grplabangle = 25, panelspacer = 0.02, grplabsize = 6, showtitle = F, titlesize = 14, titlespacer = 2,
       height = 8, width = 20, splab = "", splabcol = "white", grplabpos = 0.75, linepos = 1)
 
+#### Additional: plot pop assignment ####
 
+k4 <- all_slist$results_job_T4_1_f
+k4$pop <- all_pops$location
+k4$id <- row.names(k4)
 
+#wide to long
+k4_long <- data.table::melt(k4, id.vars = c("id", "pop"), 
+                            variable.name="Cluster")
+
+#plot cluster 1
+C1 <- ggplot(subset(k4_long, Cluster == "Cluster1"), aes(x = value, y = as.factor(pop))) + geom_boxplot() + 
+  labs(subtitle =  "Cluster membership coefficients per 
+population for cluster 1 (K = 4)", x = "Cluster membership coefficient")+
+  theme(axis.title.y = element_blank())
+
+C2 <- ggplot(subset(k4_long, Cluster == "Cluster2"), aes(x = value, y = as.factor(pop))) + geom_boxplot() + 
+  labs(subtitle =  "Cluster membership coefficients per 
+population for cluster 2 (K = 4)", x = "Cluster membership coefficient")+
+  theme(axis.title.y = element_blank())
+
+C3 <- ggplot(subset(k4_long, Cluster == "Cluster3"), aes(x = value, y = as.factor(pop))) + geom_boxplot() + 
+  labs(subtitle =  "Cluster membership coefficients 
+population for cluster 3 (K = 4)", x = "Cluster membership coefficient")+
+  theme(axis.title.y = element_blank())
+
+C4 <- ggplot(subset(k4_long, Cluster == "Cluster4"), aes(x = value, y = as.factor(pop))) + geom_boxplot() + 
+  labs(subtitle =  "Cluster membership coefficients per 
+population for cluster 4 (K = 4)", x = "Cluster membership coefficient")+
+  theme(axis.title.y = element_blank())
+
+png("figures/ClusteringStructure.png", 
+    width = 1500, height = 1000, units = "px")
+gA <- ggplotGrob(C1)
+gB <- ggplotGrob(C2)
+gD <- ggplotGrob(C3)
+gE <- ggplotGrob(C4)
+grid::grid.newpage()
+grid::grid.draw(cbind(rbind(gA, gD), rbind(gB, gE)))
+dev.off()

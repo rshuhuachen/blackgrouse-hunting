@@ -97,5 +97,3 @@ plotQ(qlist=(slist)[c(61, 41)], splab=spnames[c(61, 41)], imgoutput = "join", gr
       titlelab = "a) Structure Barplot for K = 4 and K = 2",
       grplabangle = 25, panelspacer = 0.04, grplabsize = 2, splabsize = 6, showtitle = T, titlesize = 8, titlespacer = 2)
 
-, "#E7298A", "#66A61E",
-"#56445D", "#1E3888", "#DDF9C1", "#772D8B", "#780116", "#E9FFF9"
