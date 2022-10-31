@@ -305,6 +305,8 @@ anova(model.in, model.in.null)
 
 summary(model.in) 
 simulateResiduals(fittedModel = model.in, plot = T)
+icc(model.in, by_group=T)
+r.squaredGLMM(model.in)
 
 #out
 
@@ -319,6 +321,44 @@ anova(model.out, model.out.null)
 
 summary(model.out) 
 simulateResiduals(fittedModel = model.out, plot = T)
+icc(model.out, by_group = T)
+r.squaredGLMM(model.out)
 
 compare_performance(model.in, model.in.null, rank=T)
 compare_performance(model.out, model.out.null, rank=T)
+
+
+
+#### Additional: assignment test #####
+
+### Done with geneclass2, rannala&mountain(97) criterion, 1000 simulated individuals with Paetkau et al 2004 algorithm. 0.01 p value threshold
+library(data.table);library(dplyr)
+assign<-fread("analyses/migrationanalysis/geneclass_results.csv", skip=13)
+migrants <-subset(assign, probability <= 0.05)
+migrants$id_n <- row.names(migrants)
+migrants <- migrants[,c(20,2:17)]
+names(migrants) <- c("id_n", "site", "home_max", "pval", "1", "2", "3", "4", 
+                     "5", "6", "7", "8", "9", "10", "11", "12", "n_loci")
+
+#add location of lowest -log(L)
+#transform from wide to long
+migrants_long <- melt(setDT(migrants), id.vars = c("id_n", "site", "home_max", "pval", "n_loci"), variable.name = "potential_source")
+migrants_long_min <- migrants_long %>% group_by(id_n) %>% filter(value == min(value))
+migrants_long_min$site <- as.factor(migrants_long_min$site)
+migrants_long_min$potential_source <- as.factor(migrants_long_min$potential_source)
+## add in hunted or not
+pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+pops$pop_num <- as.factor(pops$pop_num)
+pops[1,1] <- "Koskenpää"
+pops[5,1] <- "Nyrölä"
+
+#merge
+migrants_long_min <- left_join(migrants_long_min, pops[,c(1:3)], by = c("site" = "pop_num"))
+migrants_long_min <- left_join(migrants_long_min, pops[,c(1:3)], by = c("potential_source" = "pop_num"))
+names(migrants_long_min)[8] <- "site_name"
+names(migrants_long_min)[9] <- "site_hunted"
+names(migrants_long_min)[10] <- "source_name"
+names(migrants_long_min)[11] <- "source_hunted"
+
+migrants_long_min %>% group_by(site_hunted, source_hunted) %>% count()
+write.csv(migrants_long_min, "analyses/migrationanalysis/geneclass_migrants.csv",row.names = F, quote=F)
