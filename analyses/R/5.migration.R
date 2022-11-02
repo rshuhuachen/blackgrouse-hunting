@@ -22,25 +22,6 @@ distance_long <- melt(distance)
 names(distance_long) <- c("Site_A", "Site_B", "Distance")
 distance_long <- subset(distance_long, distance_long$Site_A != distance_long$Site_B)
 
-###### Before BA3 - pop assignment test #####
-
-assign <- read_xlsx("analyses/genalex/GenAlEx.adults.assignment.noLOCUS1+13.xlsx", sheet = "ASS",
-                    skip = 11)
-assign <- assign[-c(13,14),] #take out total
-assign$Total <- assign$`Self Pop`+assign$`Other Pop`
-assign$prop_migrated <- assign$`Other Pop`/assign$Total
-
-#add hunted/unhunted
-assign <- left_join(assign, pops[,c(1,3)], by = c("Pop" = "pop"))
-assign$hunt <- as.factor(assign$hunt)
-#t.test
-t.test(assign$prop_migrated[which(assign$hunt == "hunted")], 
-                            assign$prop_migrated[which(assign$hunt == "unhunted")])
-
-#model
-model_assign <- lm(prop_migrated ~ hunt + Total, data = assign)
-summary(model_assign)
-
 ######## BA3 ##########
 #######################
 
@@ -68,31 +49,27 @@ ba3.nohwe.all <- left_join(ba3.all.nohwe.a, ba3.all.nohwe.b, by = c("indivID", "
 
 head(ba3.nohwe.all)
 
-write.table(ba3.nohwe.all, "analyses/migrationanalysis/data_all_nowhe_ba3.txt",
+write.table(ba3.nohwe.all, "analyses/migrationanalysis/data_all_ba3_allloci.txt",
             col.names = F, row.names = F, sep = " ", quote = F)
 
-#### Running BA3 ####
-#make directory per run
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run1")) 
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run2"))
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run3"))
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run4"))
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run5"))
+#side note: mac can give segmentation error when running BA3 as this file is not in a location it can access (github dir?)
+#if this happens, just move the .txt file with data to another folder and adjust the location accordingly in the BA3 commands below
 
-#5 runs with 5 different random seeds
+#### Running BA3 ####
+# do 5 runs with 5 different random seeds
 
 #(1) migration rates; (2) individual migrant ancestries; (3) allele frequencies; (4) inbreeding coefficients; (5) missing genotypes
 pathba3 <- "/Users/vistor/Documents/Work/Bielefeld/PhD/Software/BA3-migration/" #path to BA3
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o run2.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o run4txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt ", getwd(), "/analyses/migrationanalysis/data_all_nowhe_ba3.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 500 -o run1_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 500 -o run2_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 500 -o run3_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 500 -o run4_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 500 -o run5_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
 
 #### Compare all 5 runs ####
-temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = "*.txt", full.names=T)
+temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = "*nohwe.txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
-run5 <- fread("analyses/migrationanalysis/run2_nohwe/run2_nohwe.txt", skip = 18, nrows=12, header=F)
+
 # formula for reshaping the dataframes
 
 reshape_ba3 <- function(m) {
@@ -136,7 +113,7 @@ reshape_ba3 <- function(m) {
 for (i in 1:length(myfiles)) {
   myfiles[[i]]<-reshape_ba3(myfiles[[i]])
 }
-run5 <- reshape_ba3(run5)
+
 
 #separate per run to compare
 run1 <- myfiles[[1]]
@@ -164,7 +141,7 @@ plot(run4$migration, run5$migration)
 # to do: add ESS, corrected migration value, hunted status, distance between sites
 
 #first add ESS
-ESS_run5 <- read.delim("analyses/migrationanalysis/run2_nohwe/BA3_tracerfile_run2_nohwe_trace.txt", sep = "\t")
+ESS_run5 <- read.delim("analyses/migrationanalysis/BA3runs/run5_nohwe_BA3_tracersummary.txt", sep = "\t")
 
 ESS_run5.df <- t(ESS_run5)
 colnames(ESS_run5.df) <- ESS_run5.df[1,]
@@ -305,8 +282,6 @@ testOverdispersion(model.out)
 compare_performance(model.in, model.in.null, rank=T)
 compare_performance(model.out, model.out.null, rank=T)
 
-
-
 #### Additional: assignment test #####
 
 ### Done with geneclass2, rannala&mountain(97) criterion, 1000 simulated individuals with Paetkau et al 2004 algorithm. 0.01 p value threshold
@@ -340,3 +315,5 @@ names(migrants_long_min)[11] <- "source_hunted"
 
 migrants_long_min %>% group_by(site_hunted, source_hunted) %>% count()
 write.csv(migrants_long_min, "analyses/migrationanalysis/geneclass_migrants.csv",row.names = F, quote=F)
+
+# left out assignment test as likely our data are not suitable for an individual based migration analysis with high gene flow, with only 12 msats
