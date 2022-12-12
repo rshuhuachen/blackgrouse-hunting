@@ -1,9 +1,7 @@
 ### Effect of hunting on genetic diversity ###
 
 ### Load packages ###
-library(dplyr);library(tibble);library(ggplot2)
-library(inbreedR); library(data.table)
-library(lmerTest); library(DHARMa); library(performance);library(MuMIn)
+pacman::p_load(tidyverse, inbreedR,data.table,lmerTest,DHARMa,performance,MuMIn)
 
 sitenames <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv") #information for each site
 sitenames[1,1] <- "Koskenpää"

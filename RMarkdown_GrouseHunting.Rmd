@@ -19,12 +19,9 @@ Within this markdown file, we follow the same order of analyses as described in 
 The following packages were used in the analyses:
 
 ```{r libraries, error=FALSE, warning=FALSE, message=F}
-library(tidyverse);library(adegenet); library(pegas)
-library(data.table);library(hierfstat); library(plot.matrix); library(lme4)
-library(forcats); library(ape); library(ParallelStructure)
-library(pophelper); library(inbreedR); library(lmerTest); library(DHARMa)
-library(performance);library(MuMIn); library(readxl); library(glmmTMB)
-library(RColorBrewer); library(extrafont); library(devtools);library(gridExtra)
+pacman::p_load(tidyverse, adegenet,pegas,data.table,hierfstat,plot.matrix,lme4,forcats,ape,ParallelStructure,
+               pophelper,inbreedR,lmerTest,DHARMa,performance,MuMIn,readxl,glmmTMB,RColorBrewer,extrafont,devtools,
+               gridExtra)
 ```
 
 # Data

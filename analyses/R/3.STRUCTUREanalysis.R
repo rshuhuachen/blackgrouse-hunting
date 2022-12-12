@@ -1,8 +1,6 @@
 ###### STRUCTURE ANALYSIS HUNTING MICROSATS ######
 
-library(data.table); library(ParallelStructure)
-library(dplyr); library(tidyr); library(stringr)
-library(pophelper); library(ggthemr)
+pacman::p_load(data.table, ParallelStructure, dplyr, tidyr,stringr,pophelper,ggthemr)
 
 #### NB: the raw results from structre are not uploaded, but can be fully recreated
 #### using the workflow below

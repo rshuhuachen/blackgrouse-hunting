@@ -4,9 +4,7 @@
 # 3) calculate pairwise Fst
 
 ## load libraries
-library(data.table); library(tidyverse); library(hierfstat); 
-library(plot.matrix); library(lme4); library(adegenet); library(forcats)
-library(ape); library(readxl); library(tibble)
+pacman::p_load(data.table, tidyverse, hierfstat, plot.matrix, lme4, adegenet, forcats, ape, readxl, tibble)
 
 all.raw <- read.structure ("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru", n.ind = 2078, n.loc = 13, onerowperind = F,
                        col.lab = 1, col.pop = 2, col.others = NULL,
