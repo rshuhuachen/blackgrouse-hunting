@@ -3,10 +3,8 @@
 ## In this script, you will find the code used to create the figures of the manuscript
 
 ### load packages ###
-
-library(RColorBrewer); library(ggplot2); library(extrafont); 
-library(dplyr); library(readxl); library(devtools); library(pophelper)
-library(gridExtra); library(adegenet); library(ggthemr)
+pacman::p_load(RColorBrewer, ggplot2, extrafont, dplyr, readxl, 
+               devtools, pophelper, gridExtra, adegenet, ggthemr)
 
 #palette
 palette1 = c("#be4d5a","#474b4e","#8b95c9","#f7f6f0","#57939a","#d7d6d5","#4d9de0","#785964","#918ef4","#519e8a",

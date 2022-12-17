@@ -4,20 +4,18 @@ library(data.table); library(ParallelStructure)
 library(dplyr); library(tidyr); library(stringr)
 library(pophelper); library(ggthemr)
 
-#### NB: the raw results from structre are not uploaded, but can be fully recreated
+#### NB: the raw results from structure are not uploaded, but can be fully recreated
 #### using the workflow below
 
-##### Running structure for males #####
-all <- fread("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru")
+##### Running structure for adults plus unrelated chicks #####
 infile <- "/data/home/rchen/Hunting/blackgrouse-hunting/data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru"
-# system("mkdir data/Results_stru_males")
 outpath <- "/data/home/rchen/Hunting/blackgrouse-hunting/analyses/structure/results/"
 
 # job matrix and write to job file
 nrep <- 10
 burnin <- 10000
 niter <- 10000
-up_to_k <- 12
+up_to_k <- 12 #= number of sites
 
 # job matrix
 k_var <- rep(1:up_to_k, each = nrep)
@@ -51,7 +49,7 @@ ParallelStructure::parallel_structure(structure_path=STR_path,
 
 #### Analysing output ####
 
-source("analyses/R/STRUCTURE_functions.R")
+source("analyses/R/STRUCTURE_functions.R") #contains functions to analyse structure output
 make_directories("analyses/structure/results/")
 load_and_clumpp("analyses/structure/results/Run_files/")
 load_and_K("analyses/structure/results/Run_files/")

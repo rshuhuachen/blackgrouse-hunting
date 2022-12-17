@@ -4,8 +4,8 @@
 ## on both emigration and immigration rates
 
 #load packages
-library(data.table); library(tidyverse); library(tibble); library(MuMIn)
-library(lme4); library(lmerTest); library(readxl); library(DHARMa);library(glmmTMB); library(performance)
+pacman::p_load(data.table, tidyverse, tibble, MuMIn, lme4,
+               lmerTest, readxl, DHARMa, glmmTMB, performance)
 
 # load in pop data
 

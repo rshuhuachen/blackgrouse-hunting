@@ -7,9 +7,8 @@
 ##### plot PCA's, test for HWE 
 
 ### Load packages ###
-library(dplyr);library(tibble)
-library(adegenet); library(pegas); library(data.table)
-library(hierfstat)
+install.packages(pacman)
+pacman::p_load(dplyr, tibble, adegenet, pegas, data.table, hierfstat)
 
 all <- read.structure("data/rawdata/Microsat.adults.plus.unrelated.chicks.forstructure.stru", n.ind = 2078, n.loc = 14, onerowperind = F,
                          col.lab = 1, col.pop = 2, col.others = NULL,
