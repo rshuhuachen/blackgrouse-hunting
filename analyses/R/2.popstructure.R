@@ -7,6 +7,7 @@
 pacman::p_load(data.table, tidyverse, hierfstat, plot.matrix, lme4,
                adegenet, forcats, ape, readxl, tibble)
 
+
 all.raw <- read.structure ("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru", n.ind = 2078, n.loc = 13, onerowperind = F,
                        col.lab = 1, col.pop = 2, col.others = NULL,
                        row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
