@@ -1,8 +1,6 @@
 ###### Here we redo all genetic analyses but taking only one chick per brood ######
 
-library(readxl); library(tidyverse); library(data.table);library(hierfstat); 
-library(plot.matrix); library(lme4); library(adegenet); library(forcats)
-library(ape); library(cowplot); library(gridExtra)
+pacman::p_load(readxl,tidyverse,data.table,hierfstat,plot.matrix,lme4,adegenet,forcats,ape,cowplot,gridExtra)
 
 ### First of all: combine dataframes to select genotypes of only one chick per brood
 

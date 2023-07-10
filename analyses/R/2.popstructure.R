@@ -1,30 +1,33 @@
 #### Population Structure #####
 
-# In this script, we will 1) calculate genetic summary statistics, 2) make a PCA, 
-# 3) calculate pairwise Fst
+# In this script, we will 1) calculate genetic summary statistics,
+# 2) calculate pairwise Fst and 3) prepare files for spatial autocorrelation with GenAlEx (excel)
 
 ## load libraries
-library(data.table); library(tidyverse); library(hierfstat); 
-library(plot.matrix); library(lme4); library(adegenet); library(forcats)
-library(ape); library(readxl); library(tibble)
+pacman::p_load(data.table, tidyverse, hierfstat, plot.matrix, lme4,
+               adegenet, forcats, ape, readxl, tibble)
+
 
 all.raw <- read.structure ("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1.forstructure.stru", n.ind = 2078, n.loc = 13, onerowperind = F,
                        col.lab = 1, col.pop = 2, col.others = NULL,
                        row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                        ask = F, quiet = FALSE)
 
+#with HWE filtering
 all <- read.structure ("data/cleandata/Microsat.adults.plus.unrelated.chicks.noLOCUS1+13.forstructure.stru", n.ind = 2078, n.loc = 12, onerowperind = F,
                                 col.lab = 1, col.pop = 2, col.others = NULL,
                                 row.marknames = 0, NA.char = "-9", pop = NULL, sep = NULL,
                                 ask = F, quiet = FALSE)
 
+#load in information on populations
 pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+#doesn't format special characters correctly from csv
 pops[1,1] <- "Koskenpää"
 pops[5,1] <- "Nyrölä"
 
-# males.data <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv")
-# females.data <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv")
-# chicks.data <- fread("data/cleandata/Unsplit.microsat.unrelated.chicks.noLOCUS1+13+14.csv")
+males.data <- fread("data/cleandata/Unsplit.microsat.males.noLOCUS1+13.csv")
+females.data <- fread("data/cleandata/Unsplit.microsat.females.noLOCUS1+13.csv")
+chicks.data <- fread("data/cleandata/Unsplit.microsat.unrelated.chicks.noLOCUS1+13+14.csv")
 
 #### Summary statistics ####
 

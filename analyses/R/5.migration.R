@@ -4,8 +4,9 @@
 ## on both emigration and immigration rates
 
 #load packages
-library(data.table); library(tidyverse); library(tibble); library(MuMIn)
-library(lme4); library(lmerTest); library(readxl); library(DHARMa);library(glmmTMB); library(performance)
+
+pacman::p_load(data.table, tidyverse, tibble, MuMIn, lme4,
+               lmerTest, readxl, DHARMa, glmmTMB, performance)
 
 # load in pop data
 
@@ -22,75 +23,52 @@ distance_long <- melt(distance)
 names(distance_long) <- c("Site_A", "Site_B", "Distance")
 distance_long <- subset(distance_long, distance_long$Site_A != distance_long$Site_B)
 
-###### Before BA3 - pop assignment test #####
-
-assign <- read_xlsx("analyses/genalex/GenAlEx.adults.assignment.noLOCUS1+13.xlsx", sheet = "ASS",
-                    skip = 11)
-assign <- assign[-c(13,14),] #take out total
-assign$Total <- assign$`Self Pop`+assign$`Other Pop`
-assign$prop_migrated <- assign$`Other Pop`/assign$Total
-
-#add hunted/unhunted
-assign <- left_join(assign, pops[,c(1,3)], by = c("Pop" = "pop"))
-assign$hunt <- as.factor(assign$hunt)
-#t.test
-t.test(assign$prop_migrated[which(assign$hunt == "hunted")], 
-                            assign$prop_migrated[which(assign$hunt == "unhunted")])
-
-#model
-model_assign <- lm(prop_migrated ~ hunt + Total, data = assign)
-summary(model_assign)
-
 ######## BA3 ##########
 #######################
 
-####### Reformatting for BA3 #######
-all.stru <- fread("data/cleandata/Microsat.adults.noLOCUS1+13.forstructure.stru")
-head(all.stru)
-names(all.stru) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
-                      "TTD3", "TUD6", "TUT3", "TUT4", "TTT2")
+####### Reformatting for BA3 with BG20 #######
+all.stru.nohwe <- fread("data/cleandata/Microsat.adults.noLOCUS1.forstructure.stru")
+head(all.stru.nohwe)
+names(all.stru.nohwe) <- c("indivID", "popID", "BG16", "BG18", "BG15", "BG19", "BG6", "TTT1", "TTD2",
+                     "TTD3", "TUD6", "TUT3", "TUT4", "BG20", "TTT2")
 
-all.stru[all.stru==-9] <- 0
-all.stru.a <- all.stru[seq(from = 1, by = 2, to = nrow(all.stru)-1),]
-all.stru.b <- all.stru[seq(from = 2, by = 2, to = nrow(all.stru)),]
+all.stru.nohwe[all.stru.nohwe==-9] <- 0
+all.stru.nohwe.a <- all.stru.nohwe[seq(from = 1, by = 2, to = nrow(all.stru.nohwe)-1),]
+all.stru.nohwe.b <- all.stru.nohwe[seq(from = 2, by = 2, to = nrow(all.stru.nohwe)),]
 
-ba3.all.a <- melt(data = all.stru.a,
-              id.vars = c("indivID", "popID"),
-              variable.name = "locID",
-              value.name = "allele1")
+ba3.all.nohwe.a <- melt(data = all.stru.nohwe.a,
+                  id.vars = c("indivID", "popID"),
+                  variable.name = "locID",
+                  value.name = "allele1")
 
-ba3.all.b <- melt(data = all.stru.b,
-              id.vars = c("indivID", "popID"),
-              variable.name = "locID",
-              value.name = "allele2")
+ba3.all.nohwe.b <- melt(data = all.stru.nohwe.b,
+                  id.vars = c("indivID", "popID"),
+                  variable.name = "locID",
+                  value.name = "allele2")
 
-ba3.all <- left_join(ba3.all.a, ba3.all.b, by = c("indivID", "popID", "locID"))
+ba3.nohwe.all <- left_join(ba3.all.nohwe.a, ba3.all.nohwe.b, by = c("indivID", "popID", "locID"))
 
-head(ba3.all)
+head(ba3.nohwe.all)
 
-write.table(ba3.all, "analyses/migrationanalysis/data_all_ba3.txt",
+write.table(ba3.nohwe.all, "analyses/migrationanalysis/data_all_ba3_allloci.txt",
             col.names = F, row.names = F, sep = " ", quote = F)
 
-#### Running BA3 ####
-#make directory per run
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run1")) 
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run2"))
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run3"))
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run4"))
-system(paste0("mkdir ", getwd(), "/analyses/migrationanalysis/BA3runs/run5"))
+#side note: mac can give segmentation error when running BA3 as this file is not in a location it can access (github dir?)
+#if this happens, just move the .txt file with data to another folder and adjust the location accordingly in the BA3 commands below
 
-#5 runs with 5 different random seeds
+#### Running BA3 ####
+# do 5 runs with 5 different random seeds
 
 #(1) migration rates; (2) individual migrant ancestries; (3) allele frequencies; (4) inbreeding coefficients; (5) missing genotypes
 pathba3 <- "/Users/vistor/Documents/Work/Bielefeld/PhD/Software/BA3-migration/" #path to BA3
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 1000 -o run1.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 1000 -o run2.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 1000 -o run3.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 1000 -o run4txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
-system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 1000 -o run5.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 65323 -i 10000000 -b 1000000 -n 500 -o run1_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 235776 -i 10000000 -b 1000000 -n 500 -o run2_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 124643 -i 10000000 -b 1000000 -n 500 -o run3_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 885256 -i 10000000 -b 1000000 -n 500 -o run4_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
+system(paste0(pathba3, "BA3/BA3MSAT -v -t -g -u -a 0.30 -f 0.40 -s 76553 -i 10000000 -b 1000000 -n 500 -o run5_nohwe.txt ", getwd(), "/analyses/migrationanalysis/data_all_ba3_allloci.txt")) 
 
-#### Compare all 10 runs ####
-temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = ".txt", full.names=T)
+#### Compare all 5 runs ####
+temp <- list.files(path = "analyses/migrationanalysis/BA3runs/", pattern = "*nohwe.txt", full.names=T)
 myfiles = lapply(temp, fread, skip = 18, nrows = 12, header = F)
 
 # formula for reshaping the dataframes
@@ -137,6 +115,7 @@ for (i in 1:length(myfiles)) {
   myfiles[[i]]<-reshape_ba3(myfiles[[i]])
 }
 
+
 #separate per run to compare
 run1 <- myfiles[[1]]
 run2 <- myfiles[[2]]
@@ -163,7 +142,7 @@ plot(run4$migration, run5$migration)
 # to do: add ESS, corrected migration value, hunted status, distance between sites
 
 #first add ESS
-ESS_run5 <- read.delim("analyses/migrationanalysis/BA3_tracersummary_run5.txt", sep = "\t")
+ESS_run5 <- read.delim("analyses/migrationanalysis/BA3runs/run5_nohwe_BA3_tracersummary.txt", sep = "\t")
 
 ESS_run5.df <- t(ESS_run5)
 colnames(ESS_run5.df) <- ESS_run5.df[1,]
@@ -274,6 +253,12 @@ anova(model.in, model.in.null)
 
 summary(model.in) 
 simulateResiduals(fittedModel = model.in, plot = T)
+icc(model.in, by_group=T)
+r.squaredGLMM(model.in)
+
+testUniformity(model.in)
+testOutliers(model.in)
+testOverdispersion(model.in)
 
 #out
 
@@ -288,6 +273,48 @@ anova(model.out, model.out.null)
 
 summary(model.out) 
 simulateResiduals(fittedModel = model.out, plot = T)
+icc(model.out, by_group = T)
+r.squaredGLMM(model.out)
+
+testUniformity(model.out)
+testOutliers(model.out)
+testOverdispersion(model.out)
 
 compare_performance(model.in, model.in.null, rank=T)
 compare_performance(model.out, model.out.null, rank=T)
+
+#### Additional: assignment test #####
+
+### Done with geneclass2, rannala&mountain(97) criterion, 1000 simulated individuals with Paetkau et al 2004 algorithm. 0.01 p value threshold
+library(data.table);library(dplyr)
+assign<-fread("analyses/migrationanalysis/geneclass_results.csv", skip=13)
+migrants <-subset(assign, probability <= 0.01)
+migrants$id_n <- row.names(migrants)
+migrants <- migrants[,c(20,2:17)]
+names(migrants) <- c("id_n", "site", "home_max", "pval", "1", "2", "3", "4", 
+                     "5", "6", "7", "8", "9", "10", "11", "12", "n_loci")
+
+#add location of lowest -log(L)
+#transform from wide to long
+migrants_long <- melt(setDT(migrants), id.vars = c("id_n", "site", "home_max", "pval", "n_loci"), variable.name = "potential_source")
+migrants_long_min <- migrants_long %>% group_by(id_n) %>% filter(value == min(value))
+migrants_long_min$site <- as.factor(migrants_long_min$site)
+migrants_long_min$potential_source <- as.factor(migrants_long_min$potential_source)
+## add in hunted or not
+pops <- read.csv("data/details/Codes.pops.both.filtered_withcoord.csv")
+pops$pop_num <- as.factor(pops$pop_num)
+pops[1,1] <- "Koskenpää"
+pops[5,1] <- "Nyrölä"
+
+#merge
+migrants_long_min <- left_join(migrants_long_min, pops[,c(1:3)], by = c("site" = "pop_num"))
+migrants_long_min <- left_join(migrants_long_min, pops[,c(1:3)], by = c("potential_source" = "pop_num"))
+names(migrants_long_min)[8] <- "site_name"
+names(migrants_long_min)[9] <- "site_hunted"
+names(migrants_long_min)[10] <- "source_name"
+names(migrants_long_min)[11] <- "source_hunted"
+
+migrants_long_min %>% group_by(site_hunted, source_hunted) %>% count()
+write.csv(migrants_long_min, "analyses/migrationanalysis/geneclass_migrants.csv",row.names = F, quote=F)
+
+# left out assignment test as likely our data are not suitable for an individual based migration analysis with high gene flow, with only 12 msats
