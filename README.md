@@ -1,7 +1,8 @@
 # blackgrouse-hunting
 
 ## Workflow
-Workflow for the manuscript "Effects of hunting on genetic diversity, inbreeding and dispersal in Finnish black grouse (Lyrurus tetrix)" - in press
+Workflow for the paper "Effects of hunting on genetic diversity, inbreeding and dispersal in Finnish black grouse (Lyrurus tetrix)" - published in Evolutionary Applications
+[https://doi.org/10.1111/eva.13521](https://doi.org/10.1111/eva.13521)
 
 Under analyses/R/ you will find the R scripts used for the data analysis conducted in the manuscript.
 
